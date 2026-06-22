@@ -4,5 +4,6 @@ dotenv.config();
 
 export const env = {
     PORT: process.env.PORT || 5000,
-    GROQ_API_KEY: process.env.GROQ_API_KEY
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
+    MONGO_URI:process.env.MONGO_URI
 };

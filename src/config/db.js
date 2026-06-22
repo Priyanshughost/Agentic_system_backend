@@ -1,21 +1,24 @@
 import mongoose from "mongoose";
 
-export const connectDB = async () => {
+export async function connectDB(){
     try {
-        const connection = await mongoose.connect(
-            'mongodb+srv://10priyanshughosh_db_user:16042005@agentic-auth.6r20n5h.mongodb.net/?appName=agentic-auth'
-        );
+        const uri =
+            process.env.MONGO_URI;
 
-        console.log(
-            `MongoDB Connected: ${connection.connection.host}`
-        );
-    }
-    catch (error) {
+        if (!uri) {
+            throw new Error(
+                "MONGODB_URI is not defined",
+            );
+        }
+
+        await mongoose.connect(uri);
+
+    } catch (error) {
         console.error(
-            "MongoDB Connection Failed:",
-            error
+            "MongoDB connection failed",
+            error,
         );
 
         process.exit(1);
     }
-};
+}
