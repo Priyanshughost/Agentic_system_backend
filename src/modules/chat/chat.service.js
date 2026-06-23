@@ -1,6 +1,9 @@
 import { chatGraph } from "../../ai/graphs/chat.graph.js";
 
-export const generateResponse = async (message) => {
+export const generateResponse = async (
+        message,
+        userId
+    ) => {
     const formattedMessage = typeof message === "string"
         ? { role: "user", content: message }
         : message;
@@ -16,8 +19,9 @@ export const generateResponse = async (message) => {
         },
         {
             configurable: {
-                thread_id: "1",
+            thread_id: userId,
             },
+            
             streamMode: "messages"
         }
     );

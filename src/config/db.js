@@ -1,24 +1,21 @@
 import mongoose from "mongoose";
 
-export async function connectDB(){
+export const connectDB = async () => {
     try {
-        const uri =
-            process.env.MONGO_URI;
+        const connection = await mongoose.connect(
+            process.env.MONGO_URI
+        );
 
-        if (!uri) {
-            throw new Error(
-                "MONGODB_URI is not defined",
-            );
-        }
-
-        await mongoose.connect(uri);
-
-    } catch (error) {
+        console.log(
+            `MongoDB Connected: ${connection.connection.host}`
+        );
+    }
+    catch (error) {
         console.error(
-            "MongoDB connection failed",
-            error,
+            "MongoDB Connection Failed:",
+            error.message
         );
 
         process.exit(1);
     }
-}
+};

@@ -7,7 +7,10 @@ export const sendMessage = async (
     res
 ) => {
 
-    const { message } = req.body;
+    const {
+        message,
+        threadId,
+    } = req.body;
 
     res.setHeader(
         "Content-Type",
@@ -26,7 +29,11 @@ export const sendMessage = async (
 
     try {
 
-        const response = await generateResponse(message);
+        const response =
+            await generateResponse(
+                message,
+                req.user.userId
+            );
 
         for await (const [chunks, metadata] of response) {
             if (!chunks?.content) continue;
