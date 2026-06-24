@@ -2,9 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "./auth.model.js";
 import {
-    generateAccessToken,
-    generateAuthPayload,
-    generateRefreshToken,
+    generateAuthPayload
 } from "./auth.utils.js";
 import crypto from "crypto";
 import Verification from "./verification.model.js";
@@ -26,11 +24,15 @@ export const registerUser = async ({
         );
     }
 
-    const otpHash =
-        crypto
-            .createHash("sha256")
-            .update(otp)
-            .digest("hex");
+    if (!email || !password || !name){
+        throw new Error("Incomplete Details Provided")
+    }
+
+        const otpHash =
+            crypto
+                .createHash("sha256")
+                .update(otp)
+                .digest("hex");
 
     if (
         verification.otpHash !==
@@ -43,7 +45,7 @@ export const registerUser = async ({
 
     const existingUser =
         await User.findOne({
-            email,
+            email: email.toLowerCase(),
         });
 
     if (existingUser) {
@@ -196,6 +198,30 @@ export const sendRegistrationOtp =
             );
         }
 
+        const existingVerification =
+            await Verification.findOne({
+                email: email.toLowerCase(),
+            });
+
+        if (existingVerification) {
+
+            const diff =
+                Date.now() -
+                existingVerification.lastOtpSentAt.getTime();
+
+            if (diff < 60_000) {
+
+                const seconds =
+                    Math.ceil(
+                        (60_000 - diff) / 1000
+                    );
+
+                throw new Error(
+                    `Please wait ${seconds}s before requesting another OTP`
+                );
+            }
+        }
+
         const otp =
             Math.floor(
                 100000 +
@@ -216,10 +242,12 @@ export const sendRegistrationOtp =
             );
 
         await Verification.findOneAndUpdate(
-            { email },
+            {
+                email: email.toLowerCase(),
+            },
             {
                 name,
-                email,
+                email: email.toLowerCase(),
                 passwordHash,
                 otpHash,
                 expiresAt:
@@ -227,6 +255,8 @@ export const sendRegistrationOtp =
                         Date.now() +
                         10 * 60 * 1000
                     ),
+                lastOtpSentAt:
+                    new Date(),
             },
             {
                 upsert: true,
@@ -244,3 +274,4 @@ export const sendRegistrationOtp =
                 "OTP sent successfully",
         };
     };
+

@@ -30,6 +30,11 @@ const verificationSchema =
                 required: true,
                 expires: 0,
             },
+            
+            lastOtpSentAt: {
+                type: Date,
+                default: Date.now,
+            },
         },
         {
             timestamps: true,

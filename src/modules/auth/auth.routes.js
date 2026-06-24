@@ -7,6 +7,7 @@ import {
     logout,
     me,
     sendOtp,
+    resendOtp,
 } from "./auth.controller.js";
 import {
     authMiddleware,
@@ -44,6 +45,11 @@ router.get(
     "/me",
     authMiddleware,
     me
+);
+
+router.post(
+    "/resend-otp",
+    resendOtp
 );
 
 export default router;

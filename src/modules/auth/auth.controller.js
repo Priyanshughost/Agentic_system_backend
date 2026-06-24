@@ -201,3 +201,29 @@ export const sendOtp = async (
 
     }
 };
+
+export const resendOtp =
+    async (req, res) => {
+        try {
+
+            const result =
+                await sendRegistrationOtp(
+                    req.body
+                );
+
+            res.status(200).json({
+                success: true,
+                data: result,
+            });
+
+        }
+        catch (error) {
+
+            res.status(400).json({
+                success: false,
+                message:
+                    error.message,
+            });
+
+        }
+    };
