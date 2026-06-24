@@ -6,12 +6,18 @@ import {
     refresh,
     logout,
     me,
+    sendOtp,
 } from "./auth.controller.js";
 import {
     authMiddleware,
 } from "../../middleware/auth.js";
 
 const router = Router();
+
+router.post(
+    "/send-otp",
+    sendOtp
+);
 
 router.post(
     "/register",

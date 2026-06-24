@@ -5,6 +5,7 @@ import {
     loginUser,
     getCurrentUser,
 } from "./auth.service.js";
+import { sendRegistrationOtp } from "./auth.service.js";
 
 export const register = async (
     req,
@@ -166,6 +167,33 @@ export const me = async (
     catch (error) {
 
         res.status(404).json({
+            success: false,
+            message:
+                error.message,
+        });
+
+    }
+};
+export const sendOtp = async (
+    req,
+    res
+) => {
+    try {
+
+        const result =
+            await sendRegistrationOtp(
+                req.body
+            );
+
+        res.status(200).json({
+            success: true,
+            data: result,
+        });
+
+    }
+    catch (error) {
+
+        res.status(400).json({
             success: false,
             message:
                 error.message,
