@@ -72,3 +72,55 @@ export const getConversationMessages =
                 createdAt: 1,
             });
     };
+export const renameConversation = async (
+    conversationId,
+    userId,
+    title
+) => {
+
+    const conversation =
+        await Conversation.findOneAndUpdate(
+            {
+                _id: conversationId,
+                userId,
+            },
+            {
+                title,
+            },
+            {
+                new: true,
+            }
+        );
+
+    if (!conversation) {
+        throw new Error(
+            "Conversation not found"
+        );
+    }
+
+    return conversation;
+};
+export const deleteConversation = async (
+    conversationId,
+    userId
+) => {
+
+    const conversation =
+        await Conversation.findOne({
+            _id: conversationId,
+            userId,
+        });
+
+    if (!conversation) {
+        throw new Error(
+            "Conversation not found"
+        );
+    }
+
+    await Message.deleteMany({
+        conversationId,
+    });
+
+    await conversation.deleteOne();
+
+};

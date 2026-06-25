@@ -1,6 +1,8 @@
 import {
     getUserConversations,
     getConversationMessages,
+    deleteConversation,
+    renameConversation,
 } from "./conversation.service.js";
 
 
@@ -61,4 +63,60 @@ export const getConversationMessagesController =
             });
 
         }
+    };
+export const renameConversationController =
+    async (req, res) => {
+
+        try {
+
+            const conversation =
+                await renameConversation(
+                    req.params.id,
+                    req.user.userId,
+                    req.body.title
+                );
+
+            res.json({
+                success: true,
+                data: conversation,
+            });
+
+        }
+        catch (error) {
+
+            res.status(500).json({
+                success: false,
+                message: error.message,
+            });
+
+        }
+
+    };
+export const deleteConversationController =
+    async (
+        req,
+        res
+    ) => {
+
+        try {
+
+            await deleteConversation(
+                req.params.id,
+                req.user.userId
+            );
+
+            res.json({
+                success: true,
+            });
+
+        }
+        catch (error) {
+
+            res.status(500).json({
+                success: false,
+                message: error.message,
+            });
+
+        }
+
     };
