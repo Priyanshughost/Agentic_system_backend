@@ -1,6 +1,13 @@
 import {
     generateResponse,
 } from "./chat.service.js";
+import {
+    createConversationIfNeeded,
+} from "../conversation/conversation.service.js";
+
+import {
+    saveMessage,
+} from "../message/message.service.js";
 
 export const sendMessage = async (
     req,
@@ -10,6 +17,7 @@ export const sendMessage = async (
     const {
         message,
         threadId,
+        conversationId
     } = req.body;
 
     res.setHeader(
@@ -28,6 +36,42 @@ export const sendMessage = async (
     );
 
     try {
+        const {
+            conversation,
+            isNew,
+        } =
+            await createConversationIfNeeded(
+                conversationId,
+                req.user.userId,
+                message
+            );
+
+        const actualConversationId =
+            conversation._id;
+
+        await saveMessage({
+            conversationId:
+                actualConversationId,
+            role: "user",
+            content: message,
+        });
+
+        let assistantResponse = "";
+
+        if (isNew) {
+
+            res.write(
+                `data: ${JSON.stringify({
+                    conversation: {
+                        _id: conversation._id,
+                        title: conversation.title,
+                        createdAt:
+                            conversation.createdAt,
+                    },
+                })}\n\n`
+            );
+
+        }
 
         const response =
             await generateResponse(
@@ -37,6 +81,9 @@ export const sendMessage = async (
 
         for await (const [chunks, metadata] of response) {
             if (!chunks?.content) continue;
+
+            assistantResponse += chunks.content;
+
             res.write(
                 `data: ${JSON.stringify({
                     role: "assistant",
@@ -44,6 +91,15 @@ export const sendMessage = async (
                 })}\n\n`
             );
         }
+
+        await saveMessage({
+            conversationId:
+                actualConversationId,
+            role: "assistant",
+            content:
+                assistantResponse,
+        });
+
         res.write(
             `data: ${JSON.stringify({
                 done: true,

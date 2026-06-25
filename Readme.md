@@ -1,82 +1,119 @@
-```markdown
 # AI Chatbot Backend
 
-Backend service for the AI Chatbot application built with Node.js and Express.
+A production-ready AI chatbot backend built with **Node.js**, **Express**, **MongoDB**, and **LangGraph**.
 
-The backend follows a **feature-based modular architecture** where each domain owns its routes, controllers, services, and validation logic. This structure keeps the codebase scalable and maintainable as new features are added.
+The backend follows a **feature-based modular architecture**, where every domain owns its routes, controllers, services, models, and validation logic. This organization keeps the codebase scalable, maintainable, and easy to extend as additional AI capabilities are introduced.
+
+The application acts as an orchestration layer between the frontend, authentication system, database, and LangGraph-powered AI workflows.
 
 ---
 
 # Features
 
-* Modular architecture
-* REST API design
-* Request validation layer
-* Service abstraction layer
+## Authentication
+
+* User registration
+* User login
+* JWT access tokens
+* JWT refresh tokens
+* HttpOnly refresh cookies
+* Automatic access token refresh
+* Protected API routes
+* Session restoration
+* Secure logout
+
+---
+
+## Conversations
+
+* Persistent conversations
+* Automatic conversation creation
+* Conversation history
+* User-specific conversations
+* Conversation retrieval
+* Active conversation support
+
+---
+
+## Messages
+
+* Persistent message storage
+* User messages
+* Assistant messages
+* Chronological retrieval
+* Conversation-based organization
+
+---
+
+## AI
+
+* LangGraph workflow orchestration
+* MemorySaver short-term memory
+* Streaming AI responses
+* Provider abstraction layer
+* AI orchestration layer
+* Ready for tools and agents
+
+---
+
+## Backend Architecture
+
+* Feature-based modules
+* Thin controllers
+* Service layer abstraction
+* Database abstraction
+* Authentication middleware
 * Environment-based configuration
-* Ready for AI provider integration
-* LangGraph-powered workflow orchestration
-* Short-term conversational memory
-* Real-time streaming responses
-* AI model abstraction layer
-* Scalable folder organization
 
 ---
 
 # Tech Stack
 
-Node.js
-Express.js
-MongoDB
-Mongoose
-JWT
-bcryptjs
-cookie-parser
-dotenv
-cors
-LangChain
-LangGraph
-Groq
-Zod
+## Runtime
+
+* Node.js
+
+## Framework
+
+* Express.js
+
+## Database
+
+* MongoDB
+* Mongoose
+
+## Authentication
+
+* JWT
+* bcryptjs
+* cookie-parser
+
+## AI
+
+* LangChain
+* LangGraph
+* Groq
+
+## Validation
+
+* Zod
+
+## Configuration
+
+* dotenv
+* cors
 
 ---
-
-# Installation
-
-Install dependencies:
-
-```bash
-npm install express dotenv cors
-
-```
-
-Install development dependencies:
-
-```bash
-npm install -D nodemon
-
-```
-
----
-
-# Scripts
-
-```json
-{
-  "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
-  }
-}
-
-```
 
 # Project Structure
 
 ```text
 backend/
+│
 ├── src/
+│
 │   ├── ai/
+│   │
 │   │   ├── agents/
 │   │   ├── graphs/
 │   │   │   └── chat.graph.js
@@ -94,11 +131,12 @@ backend/
 │   │   └── env.js
 │   │
 │   ├── middleware/
-│   │   ├── auth.middleware.js
+│   │   ├── auth.js
 │   │   ├── errorHandler.js
 │   │   └── notFound.js
 │   │
 │   ├── modules/
+│   │
 │   │   ├── auth/
 │   │   │   ├── auth.controller.js
 │   │   │   ├── auth.routes.js
@@ -107,11 +145,21 @@ backend/
 │   │   │   ├── auth.validation.js
 │   │   │   └── auth.utils.js
 │   │   │
-│   │   └── chat/
-│   │       ├── chat.controller.js
-│   │       ├── chat.routes.js
-│   │       ├── chat.service.js
-│   │       └── chat.validation.js
+│   │   ├── chat/
+│   │   │   ├── chat.controller.js
+│   │   │   ├── chat.routes.js
+│   │   │   ├── chat.service.js
+│   │   │   └── chat.validation.js
+│   │   │
+│   │   ├── conversation/
+│   │   │   ├── conversation.controller.js
+│   │   │   ├── conversation.routes.js
+│   │   │   ├── conversation.service.js
+│   │   │   └── conversation.model.js
+│   │   │
+│   │   └── message/
+│   │       ├── message.service.js
+│   │       └── message.model.js
 │   │
 │   ├── routes/
 │   │   └── index.js
@@ -124,141 +172,527 @@ backend/
 ├── .env
 ├── package.json
 └── README.md
+```
 
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone <repository-url>
+cd backend
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Start the development server
+
+```bash
+npm run dev
+```
+
+Run the production server
+
+```bash
+npm start
 ```
 
 ---
 
 # Architecture
 
-The backend is organized by feature rather than technical layer.
+The backend follows a **feature-first architecture**.
 
-Instead of:
+Instead of organizing files by technical layers such as:
 
 ```text
 controllers/
 services/
 routes/
-
+models/
 ```
 
-the project uses:
+the application groups everything by feature:
 
 ```text
 modules/
-└── chat/
-    ├── chat.controller.js
-    ├── chat.routes.js
-    ├── chat.service.js
-    └── chat.validation.js
-
+│
+├── auth/
+├── chat/
+├── conversation/
+└── message/
 ```
 
-All chat-related logic remains in a single location.
+Each module owns its own:
+
+* Routes
+* Controllers
+* Services
+* Models
+* Validation
+
+This significantly reduces coupling and makes features easier to maintain.
 
 ---
 
-# Request Flow
+# Current Backend Responsibilities
 
-Now there are two major flows.
+The backend is responsible for:
+
+* User authentication
+* Session management
+* JWT generation
+* Refresh token rotation
+* Conversation persistence
+* Message persistence
+* Conversation retrieval
+* Streaming AI responses
+* LangGraph orchestration
+* MongoDB communication
+* Request validation
+* API authorization
+
+Rather than serving only as an API, the backend functions as the application's orchestration layer, coordinating authentication, persistence, and AI execution.
+# Authentication Architecture
+
+The backend implements a stateless authentication system using **JWT access tokens** combined with **HttpOnly refresh token cookies**.
+
+This approach minimizes exposure of long-lived credentials while allowing secure session restoration.
+
+---
 
 ## Authentication Flow
 
 ```text
 Client
-    ↓
-Auth Route
-    ↓
+    │
+    ▼
+Register / Login
+    │
+    ▼
 Auth Controller
-    ↓
+    │
+    ▼
 Auth Service
-    ↓
+    │
+    ▼
 MongoDB
-    ↓
-JWT Generation
-    ↓
-Response
-
+    │
+    ▼
+Generate JWT Access Token
+Generate Refresh Token
+    │
+    ▼
+Return Access Token
+Set HttpOnly Cookie
 ```
 
-## Chat Flow
+The frontend stores only the short-lived access token.
+
+The refresh token remains inaccessible to JavaScript inside an HttpOnly cookie.
+
+---
+
+## Session Restoration
+
+When the access token expires, the frontend automatically requests a new one.
 
 ```text
-Client
-    ↓
-Auth Middleware
-    ↓
-Chat Route
-    ↓
-Chat Controller
-    ↓
-Chat Service
-    ↓
-LangGraph
-    ↓
-MemorySaver
-    ↓
-Groq
-    ↓
-Streaming Response
-
+Application Starts
+        │
+        ▼
+POST /auth/refresh
+        │
+        ▼
+Verify Refresh Token
+        │
+        ▼
+Generate New Access Token
+        │
+        ▼
+Return Access Token
+        │
+        ▼
+GET /auth/me
+        │
+        ▼
+Restore User Session
 ```
 
-Example Endpoints:
+This allows users to refresh the browser or reopen it later without logging in again.
+
+---
+
+# Conversation Architecture
+
+Unlike traditional chat applications that create conversations immediately, this backend creates a conversation **only after the user's first message**.
+
+This prevents storing empty conversations in the database.
+
+---
+
+## Conversation Creation Flow
 
 ```text
-Authentication
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/refresh
-POST /api/auth/logout
-GET  /api/auth/me
+User Sends First Message
+        │
+        ▼
+No Conversation ID
+        │
+        ▼
+Conversation Service
+        │
+        ▼
+Create Conversation
+        │
+        ▼
+Store First User Message
+        │
+        ▼
+Generate AI Response
+        │
+        ▼
+Store Assistant Message
+        │
+        ▼
+Return Conversation Metadata
+```
 
-Chat
-POST /api/chat/message
+Subsequent messages reuse the existing conversation.
 
+```text
+Existing Conversation
+        │
+        ▼
+Conversation ID Provided
+        │
+        ▼
+Skip Conversation Creation
+        │
+        ▼
+Store Messages
+        │
+        ▼
+Generate Response
 ```
 
 ---
 
-# Implemented Endpoint
+# Message Persistence
 
-## Send Message
+Every exchanged message is stored.
 
-```http
+Messages are linked to a conversation using its identifier.
+
+```text
+Conversation
+      │
+      ▼
+User Message
+      │
+      ▼
+Assistant Message
+      │
+      ▼
+MongoDB
+```
+
+This allows conversations to be reconstructed later without depending on LangGraph memory.
+
+---
+
+# Request Flow
+
+## Authentication Requests
+
+```text
+Client
+    │
+    ▼
+Route
+    │
+    ▼
+Controller
+    │
+    ▼
+Service
+    │
+    ▼
+MongoDB
+    │
+    ▼
+JWT Generation
+    │
+    ▼
+Response
+```
+
+---
+
+## Conversation Requests
+
+```text
+Client
+    │
+    ▼
+Authentication Middleware
+    │
+    ▼
+Conversation Route
+    │
+    ▼
+Conversation Controller
+    │
+    ▼
+Conversation Service
+    │
+    ▼
+MongoDB
+    │
+    ▼
+Conversation List
+```
+
+---
+
+## Message Request Flow
+
+```text
+Client
+    │
+    ▼
+Authentication Middleware
+    │
+    ▼
+Chat Route
+    │
+    ▼
+Chat Controller
+    │
+    ▼
+Conversation Service
+    │
+    ▼
+Message Service
+    │
+    ▼
+LangGraph
+    │
+    ▼
+Streaming Response
+    │
+    ▼
+Save Assistant Message
+    │
+    ▼
+Client
+```
+
+---
+
+# Streaming Architecture
+
+Responses are streamed incrementally from LangGraph to the client using **Server-Sent Event (SSE)** formatting.
+
+```text
+Client
+      │
+      ▼
+POST /chat/message
+      │
+      ▼
+Express Controller
+      │
+      ▼
+LangGraph Stream
+      │
+      ▼
+Groq Model
+      │
+      ▼
+Streaming Tokens
+      │
+      ▼
+Express Response
+      │
+      ▼
+Frontend
+```
+
+The client begins rendering the assistant response immediately instead of waiting for completion.
+
+---
+
+# LangGraph Workflow
+
+The chatbot uses LangGraph as its orchestration engine.
+
+```text
+User Message
+      │
+      ▼
+StateGraph
+      │
+      ▼
+MemorySaver
+      │
+      ▼
+Chat Node
+      │
+      ▼
+Groq Model
+      │
+      ▼
+Streaming Output
+```
+
+The workflow is intentionally modular so additional nodes, tools, or agents can be introduced without changing the API layer.
+
+---
+
+# Short-Term Memory
+
+Short-term conversational context is managed through LangGraph's **MemorySaver**.
+
+Current flow:
+
+```text
+Conversation ID
+        │
+        ▼
+Thread ID
+        │
+        ▼
+MemorySaver
+        │
+        ▼
+Conversation Context
+        │
+        ▼
+LLM
+```
+
+The thread identifier corresponds to the authenticated user, allowing the graph to retain conversational context across multiple requests.
+
+Long-term persistence is handled independently through MongoDB, keeping AI memory and application storage separate.
+# Module Responsibilities
+
+The backend follows a feature-first architecture.
+
+Each module owns its controllers, services, models, validation logic, and routes.
+
+This keeps business logic isolated and makes features easy to extend.
+
+---
+
+## Routes
+
+Routes are responsible for exposing HTTP endpoints.
+
+Responsibilities:
+
+- Define API endpoints
+- Apply middleware
+- Group related endpoints
+- Delegate requests to controllers
+
+Example:
+
+```text
+POST /api/auth/login
 POST /api/chat/message
-
+GET  /api/conversations
+GET  /api/conversations/:id
 ```
 
-Request:
+---
 
-```json
-{
-  "message": "Hello"
-}
+## Controllers
 
-```
+Controllers act as the interface between HTTP requests and business logic.
 
-Example Response:
+Responsibilities:
 
-```json
-Streamed Response
+- Receive requests
+- Extract request data
+- Validate request flow
+- Call services
+- Return HTTP responses
 
-data: {"role":"assistant","content":"Hello"}
+Controllers remain intentionally thin and contain no business logic.
 
-data: {"role":"assistant","content":" there"}
+---
 
-data: {"role":"assistant","content":"!"}
+## Services
 
-data: {"done":true}
+Services contain the application's business logic.
 
-```
+Responsibilities:
 
-This endpoint streams model-generated responses from the LangGraph workflow to the frontend using a chunked response stream.
+- Authentication logic
+- JWT generation
+- Refresh token rotation
+- Conversation creation
+- Message persistence
+- AI interactions
+- LangGraph orchestration
+- Database operations
 
-# AI Layer
+Keeping business logic inside services makes the application easier to maintain and test.
 
-The backend contains a dedicated AI orchestration layer.
+---
+
+## Models
+
+Models define the application's database schema.
+
+Current models include:
+
+- User
+- Conversation
+- Message
+
+Models are responsible only for representing stored data and relationships.
+
+---
+
+## Middleware
+
+Middleware executes before requests reach controllers.
+
+Current middleware includes:
+
+- Authentication
+- Error handling
+- Not Found handler
+
+Authentication middleware verifies access tokens and attaches the authenticated user to the request.
+
+---
+
+## Validation
+
+Validation ensures only valid data reaches the business layer.
+
+Responsibilities:
+
+- Request validation
+- Input sanitization
+- Schema enforcement
+
+This prevents malformed requests from reaching services.
+
+---
+
+## AI Layer
+
+The AI layer is completely separated from the REST API.
 
 ```text
 src/ai/
@@ -269,126 +703,70 @@ src/ai/
 ├── prompts/
 ├── agents/
 └── tools/
-
 ```
 
 Responsibilities:
 
-Models
-• LLM configuration and provider setup
+### Models
 
-State
-• Conversation state definitions
+- Configure LLM providers
+- Provider abstraction
+- Model initialization
 
-Nodes
-• Individual workflow execution units
+### State
 
-Graphs
-• Workflow orchestration and execution
+- Define LangGraph state
+- Manage conversation state
 
-Prompts
-• Prompt templates and instructions
+### Nodes
 
-Agents
-• Reserved for future agent implementations
+- Execute individual workflow steps
 
-Tools
-• Reserved for future tool integrations
+### Graphs
 
-# Short-Term Memory
+- Coordinate workflow execution
+- Connect nodes together
 
-The chatbot currently uses LangGraph's MemorySaver checkpointer for short-term conversational memory.
+### Prompts
 
-Current implementation:
+- Store reusable prompt templates
 
-```text
-User Message
-      ↓
-Graph State
-      ↓
-MemorySaver
-      ↓
-Groq Model
-      ↓
-Response
+### Agents
 
-```
+Reserved for future multi-agent implementations.
 
-Conversation state is maintained per thread using a thread identifier supplied during graph execution.
+### Tools
 
-This enables the chatbot to retain context across multiple messages within the same conversation.
+Reserved for future tool calling, web search, retrieval, file processing, and external integrations.
 
-# Module Responsibilities
-
-## Routes
-
-Responsible for:
-
-* API endpoint definitions
-* Route grouping
-* Middleware attachment
-
-Example:
-
-```text
-POST /chat/message
-
-```
-
----
-
-## Controllers
-
-Responsible for:
-
-* Receiving requests
-* Extracting request data
-* Calling services
-* Sending responses
-
-Controllers should remain thin.
-
----
-
-## Services
-
-Responsible for:
-
-* Business logic
-* AI interactions
-* Data processing
-* External integrations
-
-Services contain the core application logic.
-
----
-
-## Validation
-
-Responsible for:
-
-* Request validation
-* Input sanitization
-* Schema definitions
-
-Validation keeps controllers clean and prevents invalid data from entering the system.
-
----
-
+This separation keeps the REST API independent from AI implementation details.
 # Configuration
 
-Application configuration should be centralized inside:
+Application configuration is centralized inside:
 
 ```text
 src/config/
-
+├── db.js
+└── env.js
 ```
 
-Examples:
+Keeping configuration separate from business logic makes the application easier to maintain and deploy across different environments.
 
-* Environment variables
-* Database configuration
-* Provider configuration
+Current configuration includes:
+
+- MongoDB connection
+- Environment variable loading
+- Application startup configuration
+
+Future configuration may include:
+
+- Redis
+- Object storage
+- Logging providers
+- Email providers
+- AI provider configuration
+- Rate limiting
+- Caching
 
 ---
 
@@ -399,6 +777,17 @@ Example:
 ```env
 PORT=5000
 
+MONGODB_URI=
+
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+
+ACCESS_TOKEN_EXPIRES_IN=15m
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+CLIENT_URL=
+
+GROQ_API_KEY=
 ```
 
 Future variables may include:
@@ -407,137 +796,121 @@ Future variables may include:
 OPENAI_API_KEY=
 GEMINI_API_KEY=
 ANTHROPIC_API_KEY=
-DATABASE_URL=
 
+REDIS_URL=
+
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASSWORD=
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+S3_BUCKET=
 ```
+
+Environment variables allow sensitive configuration to remain outside the codebase and simplify deployment across development, staging, and production environments.
 
 ---
 
 # Current Development Stage
 
-Current implementation:
+The project has evolved into a complete authenticated AI chatbot platform.
+
+Current architecture:
 
 ```text
-Frontend (React + Zustand)
-        ↓
-Streaming Fetch Request
-        ↓
-POST /api/chat/message
-        ↓
+React Frontend
+        │
+        ▼
+Authentication
+(JWT + Refresh Token)
+        │
+        ▼
+Protected API Requests
+        │
+        ▼
 Express Backend
-        ↓
-Controller
-        ↓
-Service
-        ↓
-LangGraph Workflow
-        ↓
-MemorySaver
-        ↓
-Groq Model
-        ↓
-Streaming Chunks
-        ↓
-Frontend UI
-
+        │
+        ▼
+Business Services
+        │
+        ├──────────────┐
+        ▼              ▼
+MongoDB         LangGraph Workflow
+        │              │
+        ▼              ▼
+Conversation DB   Groq LLM
+        │              │
+        └──────┬───────┘
+               ▼
+      Streaming Response
+               ▼
+        React UI Updates
 ```
 
 Completed milestones:
 
-• MongoDB integration
-• User authentication system
-• JWT access token generation
-• JWT refresh token generation
-• Refresh token rotation flow
-• HttpOnly cookie-based authentication
-• User session restoration
-• Protected API routes
-• LangGraph workflow orchestration
-• MemorySaver short-term memory
-• Real-time streaming responses
-• Zustand-driven frontend updates
+- MongoDB integration
+- User authentication
+- JWT access token authentication
+- Refresh token rotation
+- HttpOnly cookie authentication
+- Automatic session restoration
+- Protected API routes
+- Conversation persistence
+- Message persistence
+- Conversation history retrieval
+- Conversation switching
+- LangGraph workflow integration
+- MemorySaver short-term memory
+- Streaming AI responses
+- Real-time frontend streaming
+- Zustand state management
+- Modular feature-based architecture
 
-The project has moved beyond local placeholder responses and now uses a dedicated backend service as the communication layer.
-
+The application has moved beyond a simple chatbot prototype into a production-oriented architecture capable of supporting persistent conversations, authenticated users, and future AI workflows.
 # Streaming Architecture
 
-The backend streams model responses incrementally to the frontend.
+The backend streams model responses incrementally to the frontend instead of waiting for the complete response to be generated.
 
-Current implementation:
+Current flow:
 
 ```text
 Client
-      ↓
-POST Request
-      ↓
-Express Controller
-      ↓
+      │
+      ▼
+POST /api/chat/message
+      │
+      ▼
+Authentication Middleware
+      │
+      ▼
+Chat Controller
+      │
+      ▼
+Conversation Creation
+(if required)
+      │
+      ▼
+Save User Message
+      │
+      ▼
 LangGraph Stream
-      ↓
-Groq Stream
-      ↓
-Chunked Response
-      ↓
-Frontend State Updates
-
+      │
+      ▼
+Groq Model
+      │
+      ▼
+Streaming Chunks
+      │
+      ▼
+Save Assistant Message
+      │
+      ▼
+Frontend Incremental Rendering
 ```
 
-This enables ChatGPT-style real-time response rendering instead of waiting for a complete response before sending data back to the client.
+The frontend receives partial responses over a streamed HTTP connection and progressively updates the assistant message in real time.
 
-# Future Enhancements
-
-## AI Providers
-
-Potential provider integrations:
-
-```text
-OpenAI
-Gemini
-Anthropic
-
-```
-
-A dedicated AI layer has been introduced to support future provider integrations, graph-based workflows, agents, tools, and orchestration frameworks such as LangGraph.
-
----
-
-## Persistence
-
-Future additions:
-
-* Conversation storage
-* Message history
-* User management
-* Authentication
-
----
-
-## Observability
-
-Possible future additions:
-
-* Request logging
-* Error tracking
-* Monitoring
-* Analytics
-
----
-
-# Design Principles
-
-* Feature-first architecture
-* Thin controllers
-* Business logic inside services
-* Separation of concerns
-* Scalability over convenience
-* AI-provider agnostic design
-
----
-
-# License
-
-MIT License
-
-```
-
-```
+This provides a ChatGPT-style experience where users can read responses as they are generated rather than waiting for the entire completion.

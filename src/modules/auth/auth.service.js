@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "./auth.model.js";
 import {
+    generateAccessToken,
     generateAuthPayload
 } from "./auth.utils.js";
 import crypto from "crypto";
