@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import User from "./auth.model.js";
 import {
     generateAccessToken,
-    generateAuthPayload
+    generateAuthPayload,
+    generateRefreshToken
 } from "./auth.utils.js";
 import crypto from "crypto";
 import Verification from "./verification.model.js";
@@ -25,15 +26,15 @@ export const registerUser = async ({
         );
     }
 
-    if (!email || !password || !name){
+    if (!email || !otp) {
         throw new Error("Incomplete Details Provided")
     }
 
-        const otpHash =
-            crypto
-                .createHash("sha256")
-                .update(otp)
-                .digest("hex");
+    const otpHash =
+        crypto
+            .createHash("sha256")
+            .update(otp)
+            .digest("hex");
 
     if (
         verification.otpHash !==
@@ -116,11 +117,25 @@ export const refreshAccessToken =
             );
         }
 
-        const decoded =
-            jwt.verify(
+        let decoded;
+
+        try {
+
+            decoded = jwt.verify(
                 refreshToken,
                 process.env.JWT_REFRESH_SECRET
             );
+
+        }
+        catch (error) {
+
+            if (error.name === "TokenExpiredError") {
+                throw new Error("Refresh token expired");
+            }
+
+            throw new Error("Invalid refresh token");
+
+        }
 
         const user =
             await User.findById(
@@ -143,12 +158,19 @@ export const refreshAccessToken =
         }
 
         const accessToken =
-            generateAccessToken(
-                user._id
-            );
+            generateAccessToken(user._id);
+
+        const newRefreshToken =
+            generateRefreshToken(user._id);
+
+        user.refreshToken =
+            newRefreshToken;
+
+        await user.save();
 
         return {
             accessToken,
+            refreshToken: newRefreshToken,
         };
     };
 export const logoutUser =

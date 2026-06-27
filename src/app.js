@@ -8,8 +8,6 @@ import { env } from "./config/env.js";
 const app = express();
 
 app.use(cookieParser());
-console.log("Entered app.js")
-console.log(env.CLIENT_URL)
 app.use(
     cors({
         origin:

@@ -40,9 +40,26 @@ export const authMiddleware = (
     }
     catch (error) {
 
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                code: "TOKEN_EXPIRED",
+                message: "Access token expired",
+            });
+        }
+
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                code: "INVALID_TOKEN",
+                message: "Invalid access token",
+            });
+        }
+
         return res.status(401).json({
             success: false,
-            message: "Invalid token",
+            code: "AUTH_FAILED",
+            message: "Authentication failed",
         });
 
     }

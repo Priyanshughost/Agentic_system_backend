@@ -100,19 +100,51 @@ export const refresh = async (
     req,
     res
 ) => {
+    console.log("\nrefresh called\n")
 
-    const refreshToken =
-        req.cookies.refreshToken;
+    try {
 
-    const data =
-        await refreshAccessToken(
-            refreshToken
+        const refreshToken =
+            req.cookies.refreshToken;
+
+        const data =
+            await refreshAccessToken(
+                refreshToken
+            );
+
+        res.cookie(
+            "refreshToken",
+            data.refreshToken,
+            {
+                httpOnly: true,
+                secure:
+                    process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge:
+                    7 * 24 * 60 * 60 * 1000,
+            }
         );
 
-    res.status(200).json({
-        success: true,
-        data,
-    });
+        res.status(200).json({
+            success: true,
+            data: {
+                accessToken:
+                    data.accessToken,
+            },
+        });
+
+    }
+    catch (error) {
+
+        res.clearCookie("refreshToken");
+
+        res.status(401).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+
 };
 
 export const logout = async (

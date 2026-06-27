@@ -2,7 +2,8 @@ import { chatGraph } from "../../ai/graphs/chat.graph.js";
 
 export const generateResponse = async (
         message,
-        userId
+        userId,
+        conversationId
     ) => {
     const formattedMessage = typeof message === "string"
         ? { role: "user", content: message }
@@ -19,10 +20,10 @@ export const generateResponse = async (
         },
         {
             configurable: {
-            thread_id: userId,
+            thread_id: `${userId}:${conversationId.toString()}`,
             },
             
-            streamMode: "messages"
+            streamMode: ["messages", "updates"]
         }
     );
 };
