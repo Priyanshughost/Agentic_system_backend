@@ -7,6 +7,6 @@ export const env = {
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     MONGO_URI: process.env.MONGO_URI,
     CLIENT_URL: process.env.CLIENT_URL,
-    ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN,
-    REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN
+    NODE_ENV: process.env.NODE_ENV,
+    TAVILY_API_KEY: process.env.TAVILY_API_KEY
 };
