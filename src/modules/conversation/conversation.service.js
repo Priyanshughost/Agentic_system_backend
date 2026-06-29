@@ -25,7 +25,7 @@ export const createConversationIfNeeded =
             await Conversation.create({
                 userId,
                 title:
-                    firstMessage.slice(0, 50),
+                    "New Chat",
             });
 
         return {

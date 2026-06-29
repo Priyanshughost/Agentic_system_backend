@@ -1,6 +1,7 @@
 import { generateResponse } from "./chat.service.js";
 import { createConversationIfNeeded } from "../conversation/conversation.service.js";
 import { saveMessage } from "../message/message.service.js";
+import { generateConversationTitle } from "../conversation/title.service.js";
 
 export const sendMessage = async (req, res) => {
     const { message, conversationId } = req.body;
@@ -25,18 +26,6 @@ export const sendMessage = async (req, res) => {
         });
 
         let assistantResponse = "";
-
-        if (isNew) {
-            res.write(
-                `data: ${JSON.stringify({
-                    conversation: {
-                        _id: conversation._id,
-                        title: conversation.title,
-                        createdAt: conversation.createdAt,
-                    },
-                })}\n\n`
-            );
-        }
 
         const response = await generateResponse(
             message,
@@ -66,7 +55,7 @@ export const sendMessage = async (req, res) => {
             else if (mode === "updates") {
                 // payload is an object where the key is the active node name
                 const activeNode = Object.keys(payload)[0];
-
+                console.log(activeNode)
                 // Ignore the generic end node
                 if (activeNode && activeNode !== "__end__") {
                     res.write(
@@ -84,6 +73,33 @@ export const sendMessage = async (req, res) => {
             role: "assistant",
             content: assistantResponse,
         });
+
+        if (isNew) {
+            try {
+                // FIX 1: Map the variables to the correct keys expected by the service
+                const title = await generateConversationTitle({
+                    conversationId: actualConversationId,
+                    userMessage: message,
+                });
+
+                if (title) {
+
+                    res.write(
+                        `data: ${JSON.stringify({
+                            conversation: {
+                                _id: conversation._id,
+                                title,
+                                createdAt: conversation.createdAt,
+                            },
+                        })}\n\n`
+                    );
+                }
+            }
+            catch (error) {
+                // FIX 2: Change 'err' to 'error'
+                console.error("Title generation failed", error);
+            }
+        }
 
         res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
         res.end();

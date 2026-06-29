@@ -4,7 +4,6 @@ import { HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages
 import { llama70b } from "../models/llama-70b.js";
 
 export const chatNode = async (state) => {
-    console.log(state.messages)
     // 2. Extract the raw object
     const messages = state.messages.map((msg) => {
         switch (msg.role) {
