@@ -1,8 +1,8 @@
 import { ChatGroq } from "@langchain/groq"
 import { env } from "../../config/env.js"
 
-export const llama8b = new ChatGroq({
-    model: "llama-3.1-8b-instant",
-    apiKey: env.GROQ_API_KEY,
+export const qwen32b = new ChatGroq({
+    model: "qwen/qwen3-32b",
     temperature: 0,
+    apiKey: env.GROQ_API_KEY
 })
