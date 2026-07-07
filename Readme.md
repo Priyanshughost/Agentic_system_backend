@@ -10,60 +10,114 @@ The application acts as an orchestration layer between the frontend, authenticat
 
 # Features
 
-## Authentication
+The backend is divided into two major capability groups:
 
-* User registration
-* User login
-* JWT access tokens
-* JWT refresh tokens
-* HttpOnly refresh cookies
-* Automatic access token refresh
-* Protected API routes
-* Session restoration
-* Secure logout
+- **Application Backend** — Authentication, persistence, API orchestration, and streaming.
+- **AI Runtime** — Dynamic planning, compilation, and execution of runtime-generated multi-agent workflows.
 
 ---
 
-## Conversations
+## Application Backend
 
-* Persistent conversations
-* Automatic conversation creation
-* Conversation history
-* User-specific conversations
-* Conversation retrieval
-* Active conversation support
+### Authentication
+
+- User registration
+- Email verification with OTP
+- User login
+- JWT access tokens
+- JWT refresh tokens
+- HttpOnly refresh cookies
+- Automatic access token refresh
+- Secure session restoration
+- Protected API routes
+- Secure logout
+
+### Conversations
+
+- Automatic conversation creation
+- Persistent conversation storage
+- Conversation history
+- User-specific conversations
+- Conversation title generation
+- Conversation retrieval
+- Active conversation support
+
+### Messages
+
+- Persistent message storage
+- User and assistant message separation
+- Chronological message retrieval
+- Conversation-based organization
+
+### Streaming
+
+- Real-time AI response streaming
+- Server-Sent Events (SSE)
+- Incremental frontend rendering
+- Streaming persistence pipeline
 
 ---
 
-## Messages
+## AI Runtime
 
-* Persistent message storage
-* User messages
-* Assistant messages
-* Chronological retrieval
-* Conversation-based organization
+### Planning Pipeline
 
----
+- Intent Analyzer
+- Clarification Node
+- Meta Architect
+- Blueprint Validation
+- Agent Specification Generator
 
-## AI
+### Runtime Compilation
 
-* LangGraph workflow orchestration
-* MemorySaver short-term memory
-* Streaming AI responses
-* Provider abstraction layer
-* AI orchestration layer
-* Ready for tools and agents
+- Dynamic runtime graph compilation
+- Runtime agent generation
+- Runtime model resolution
+- Runtime tool resolution
+- Automatic graph construction
+- LangGraph compilation
+
+### Runtime Execution
+
+- Ephemeral runtime agents
+- Shared runtime execution state
+- Runtime input resolution
+- Runtime output validation
+- Runtime state merging
+- Deterministic task execution
+- Runtime graph execution engine
+
+### Tool System
+
+- Runtime tool registry
+- Runtime tool catalog
+- Dynamic tool binding
+- Tavily web search integration
+- Tool result compression
+- Runtime tool caching
+
+### AI Infrastructure
+
+- LangGraph workflow orchestration
+- Runtime StateGraph generation
+- Provider abstraction layer
+- Multiple model registry
+- Structured execution pipeline
+- Blueprint validation framework
 
 ---
 
 ## Backend Architecture
 
-* Feature-based modules
-* Thin controllers
-* Service layer abstraction
-* Database abstraction
-* Authentication middleware
-* Environment-based configuration
+- Feature-based modular architecture
+- Thin controllers
+- Service layer abstraction
+- Database abstraction
+- Authentication middleware
+- Validation layer
+- Runtime compiler architecture
+- Runtime execution engine
+- AI orchestration layer
 
 ---
 
@@ -108,72 +162,124 @@ The application acts as an orchestration layer between the frontend, authenticat
 # Project Structure
 
 ```text
-backend/
+src/
 │
-├── src/
+├── app.js
+├── server.js
 │
-│   ├── ai/
+├── ai/
 │   │
-│   │   ├── agents/
-│   │   ├── graphs/
-│   │   │   └── chat.graph.js
-│   │   ├── models/
-│   │   │   └── groq.js
-│   │   ├── nodes/
-│   │   │   └── chat.node.js
-│   │   ├── prompts/
-│   │   ├── state/
-│   │   │   └── state.js
-│   │   └── tools/
+│   ├── compiler/
+│   │   └── compileRuntimeGraph.js
 │   │
-│   ├── config/
-│   │   ├── db.js
-│   │   └── env.js
+│   ├── graphs/
+│   │   ├── chat.graph.js
+│   │   └── test.graph.js
 │   │
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   ├── errorHandler.js
-│   │   └── notFound.js
+│   ├── models/
+│   │   ├── allam-2-7b.js
+│   │   ├── gpt-120b.js
+│   │   ├── gpt-20b.js
+│   │   ├── gpt-safeguard.js
+│   │   ├── llama-17b.js
+│   │   ├── llama-22m.js
+│   │   ├── llama-86m.js
+│   │   ├── llama-8b.js
+│   │   └── registry.js
 │   │
-│   ├── modules/
+│   ├── nodes/
+│   │   ├── intent.node.js
+│   │   ├── clarification.node.js
+│   │   ├── architect.node.js
+│   │   ├── agentSpecification.node.js
+│   │   └── chat.node.js
 │   │
-│   │   ├── auth/
-│   │   │   ├── auth.controller.js
-│   │   │   ├── auth.routes.js
-│   │   │   ├── auth.service.js
-│   │   │   ├── auth.model.js
-│   │   │   ├── auth.validation.js
-│   │   │   └── auth.utils.js
-│   │   │
-│   │   ├── chat/
-│   │   │   ├── chat.controller.js
-│   │   │   ├── chat.routes.js
-│   │   │   ├── chat.service.js
-│   │   │   └── chat.validation.js
-│   │   │
-│   │   ├── conversation/
-│   │   │   ├── conversation.controller.js
-│   │   │   ├── conversation.routes.js
-│   │   │   ├── conversation.service.js
-│   │   │   └── conversation.model.js
-│   │   │
-│   │   └── message/
-│   │       ├── message.service.js
-│   │       └── message.model.js
+│   ├── prompts/
+│   │   ├── intent.prompt.js
+│   │   ├── clarification.prompt.js
+│   │   ├── architect.prompt.js
+│   │   └── agentSpecification.prompt.js
 │   │
-│   ├── routes/
-│   │   └── index.js
+│   ├── runtime/
+│   │   ├── createAgentPrompt.js
+│   │   ├── createRuntimeAgent.js
+│   │   ├── inputResolver.js
+│   │   ├── outputMerger.js
+│   │   ├── parseRuntimeOutput.js
+│   │   ├── processToolResult.js
+│   │   ├── runtime.state.js
+│   │   └── runtimeExecutor.js
 │   │
-│   ├── utils/
+│   ├── state/
+│   │   ├── state.js
+│   │   ├── intent.state.js
+│   │   ├── clarification.state.js
+│   │   ├── architect.state.js
+│   │   └── agentSpecification.state.js
 │   │
-│   ├── app.js
-│   └── server.js
+│   ├── tools/
+│   │   ├── catalog.js
+│   │   ├── registry.js
+│   │   └── webSearch.tool.js
+│   │
+│   └── validators/
+│       ├── blueprint.validator.js
+│       ├── constraint.validator.js
+│       ├── dependency.validator.js
+│       ├── edge.validator.js
+│       ├── graph.validator.js
+│       ├── metrics.js
+│       └── task.validator.js
 │
-├── .env
-├── package.json
-└── README.md
+├── config/
+│   ├── db.js
+│   └── env.js
+│
+├── middleware/
+│   ├── auth.js
+│   ├── errorHandler.js
+│   ├── notFound.js
+│   └── rateLimiter.js
+│
+├── modules/
+│   │
+│   ├── auth/
+│   ├── chat/
+│   ├── conversation/
+│   └── message/
+│
+├── routes/
+│   └── index.js
+│
+└── utils/
 ```
 
+## Directory Responsibilities
+
+| Directory | Responsibility |
+|-----------|----------------|
+| `compiler/` | Compiles validated execution blueprints into executable LangGraph runtime workflows. |
+| `graphs/` | Defines planning graphs and runtime testing graphs. |
+| `models/` | Central registry and initialization of all supported LLMs. |
+| `nodes/` | Planning nodes executed during blueprint generation. |
+| `prompts/` | Prompt templates separated from orchestration logic. |
+| `runtime/` | Runtime agent execution engine, prompt generation, tool processing, parsing, state merging, and execution orchestration. |
+| `state/` | Shared LangGraph state definitions used throughout the planning pipeline. |
+| `tools/` | Runtime tool catalog, registry, and external capability implementations. |
+| `validators/` | Structural validation of execution blueprints before compilation. |
+| `modules/` | REST API business logic organized by feature. |
+| `middleware/` | Shared Express middleware. |
+| `config/` | Environment and database configuration. |
+| `routes/` | API route aggregation. |
+| `utils/` | Shared helper utilities. |
+
+The backend is organized into two major subsystems.
+
+The **application layer** (`modules/`) contains the production REST API responsible for authentication, conversations, persistent storage, request validation, and HTTP communication.
+
+The **AI layer** (`src/ai/`) is completely isolated from the REST API and contains the planning, validation, compilation, and runtime execution infrastructure for dynamically generated multi-agent workflows.
+
+This separation allows the AI runtime to evolve independently from the application layer while keeping the backend modular, scalable, and maintainable.
 ---
 
 # Installation
@@ -207,37 +313,132 @@ npm start
 
 # Architecture
 
-The backend follows a **feature-first architecture**.
+The backend follows a two-stage execution architecture that separates **planning** from **execution**.
 
-Instead of organizing files by technical layers such as:
-
-```text
-controllers/
-services/
-routes/
-models/
-```
-
-the application groups everything by feature:
+Rather than asking a single LLM to solve an entire request, the system first constructs an execution plan and then compiles that plan into a brand-new executable LangGraph at runtime.
 
 ```text
-modules/
-│
-├── auth/
-├── chat/
-├── conversation/
-└── message/
+                       USER REQUEST
+                             │
+                             ▼
+                  Intent Analysis Node
+                             │
+                             ▼
+                 Clarification Node
+                             │
+                             ▼
+                  Meta Architect Node
+                             │
+                             ▼
+               Execution Blueprint (JSON)
+                             │
+                             ▼
+            Blueprint Validation Pipeline
+                             │
+                             ▼
+          Agent Specification Generator
+                             │
+                             ▼
+                 Runtime Compiler
+                             │
+          ┌──────────────────────────────┐
+          │ Creates an entirely new      │
+          │ LangGraph at runtime         │
+          └──────────────────────────────┘
+                             │
+                             ▼
+                 Runtime Agent Graph
+                             │
+           ┌──────────────────────────┐
+           │ Runtime Agent #1         │
+           └──────────────────────────┘
+                             │
+                             ▼
+                     Shared Runtime State
+                             │
+           ┌──────────────────────────┐
+           │ Runtime Agent #2         │
+           └──────────────────────────┘
+                             │
+                             ▼
+                     Shared Runtime State
+                             │
+                             ▼
+                           ...
+                             │
+                             ▼
+                    Final Runtime Agent
+                             │
+                             ▼
+                    Final Runtime Output
 ```
 
-Each module owns its own:
+---
 
-* Routes
-* Controllers
-* Services
-* Models
-* Validation
+## Stage 1 — Planning
 
-This significantly reduces coupling and makes features easier to maintain.
+The planning pipeline is responsible for converting natural language into deterministic execution artifacts.
+
+Outputs produced during this stage include:
+
+- Intent Object
+- Clarification
+- Execution Blueprint
+- Blueprint Validation
+- Runtime Agent Specifications
+
+No user task is executed during planning.
+
+Instead, planning produces a complete description of *how* the task should be executed.
+
+---
+
+## Stage 2 — Compilation
+
+The runtime compiler consumes the planning artifacts and constructs a brand-new executable LangGraph.
+
+During compilation it:
+
+- Creates runtime nodes
+- Resolves runtime models
+- Resolves runtime tools
+- Connects execution edges
+- Produces an executable StateGraph
+
+The compiler performs no reasoning.
+
+It is a deterministic transformation step.
+
+---
+
+## Stage 3 — Runtime Execution
+
+The compiled graph is immediately executed.
+
+Each runtime agent:
+
+1. Resolves its required inputs.
+2. Builds its runtime prompt.
+3. Invokes its assigned language model.
+4. Uses external tools when required.
+5. Compresses tool outputs.
+6. Produces structured outputs.
+7. Merges results into the shared runtime state.
+
+Every downstream agent consumes outputs produced by previous runtime agents through the shared runtime state rather than conversational history.
+
+---
+
+## Design Principles
+
+The runtime architecture follows several core principles:
+
+- Planning and execution are completely separated.
+- Runtime graphs are generated dynamically.
+- Runtime agents are ephemeral and exist only for a single execution.
+- Shared runtime state replaces direct agent-to-agent communication.
+- Models and tools are resolved dynamically through registries.
+- Every execution is deterministic once the planning phase is complete.
 
 ---
 # AI Chatbot & Meta-Graph Backend
@@ -695,56 +896,217 @@ This prevents malformed requests from reaching services.
 
 ---
 
-## AI Layer
+# AI Layer
 
-The AI layer is completely separated from the REST API.
+The AI layer is completely isolated from the REST API and acts as the backend's intelligent orchestration engine.
+
+Unlike conventional chatbot backends that execute a single prompt against an LLM, this project transforms every user request into a deterministic execution pipeline capable of planning, validating, compiling, and executing runtime-generated multi-agent workflows.
 
 ```text
 src/ai/
-├── models/
-├── state/
-├── nodes/
+│
+├── compiler/
 ├── graphs/
+├── models/
+├── nodes/
 ├── prompts/
-├── agents/
-└── tools/
+├── runtime/
+├── state/
+├── tools/
+└── validators/
 ```
+
+Each directory represents an independent subsystem with clearly defined responsibilities.
+
+---
+
+## Graphs
+
+Graphs define high-level orchestration workflows.
 
 Responsibilities:
 
-### Models
+- Coordinate execution pipelines
+- Connect planning nodes
+- Define workflow entry points
+- Produce execution state
 
-- Configure LLM providers
-- Provider abstraction
-- Model initialization
+Current graphs include:
 
-### State
+- Chat Graph
+- Runtime testing graphs
 
-- Define LangGraph state
-- Manage conversation state
+---
 
-### Nodes
+## Nodes
 
-- Execute individual workflow steps
+Nodes represent intelligent planning stages executed inside LangGraph.
 
-### Graphs
+Current planning nodes include:
 
-- Coordinate workflow execution
-- Connect nodes together
+- Intent Analyzer
+- Clarification Node
+- Meta Architect
+- Agent Specification Generator
+- Chat Node
 
-### Prompts
+Each node performs a single well-defined responsibility and communicates exclusively through structured state.
 
-- Store reusable prompt templates
+---
 
-### Agents
+## State
 
-Reserved for future multi-agent implementations.
+State definitions provide the shared data contracts used throughout LangGraph execution.
 
-### Tools
+Responsibilities:
 
-Reserved for future tool calling, web search, retrieval, file processing, and external integrations.
+- Define execution state
+- Define planning state
+- Maintain structured communication between nodes
+- Eliminate implicit prompt-based communication
 
-This separation keeps the REST API independent from AI implementation details.
+Separate state definitions exist for each planning subsystem together with the shared graph state.
+
+---
+
+## Prompts
+
+Prompt templates are separated from execution logic.
+
+Responsibilities:
+
+- Store reusable system prompts
+- Define planning behavior
+- Keep orchestration code independent from prompt engineering
+- Enable prompt iteration without modifying runtime logic
+
+---
+
+## Models
+
+The model layer provides an abstraction over supported LLM providers.
+
+Responsibilities:
+
+- Configure language models
+- Register available providers
+- Centralize model initialization
+- Support runtime model selection
+
+Runtime agents resolve models dynamically through the model registry instead of depending on hardcoded implementations.
+
+---
+
+## Validators
+
+The validation layer ensures execution plans are structurally correct before runtime compilation begins.
+
+Current validators verify:
+
+- Task definitions
+- Dependencies
+- Execution edges
+- Graph topology
+- Execution constraints
+- Runtime metrics
+
+No runtime graph is allowed to execute until every validation stage succeeds.
+
+---
+
+## Compiler
+
+The compiler bridges AI-driven planning with deterministic runtime infrastructure.
+
+Responsibilities:
+
+- Consume validated execution blueprints
+- Resolve runtime specifications
+- Instantiate runtime agents
+- Resolve runtime models
+- Resolve runtime tools
+- Construct runtime LangGraph nodes
+- Wire execution edges
+- Produce executable runtime graphs
+
+The compiler performs no reasoning. It deterministically transforms planning artifacts into executable runtime infrastructure.
+
+---
+
+## Runtime
+
+The runtime subsystem executes dynamically generated workflows.
+
+Responsibilities:
+
+- Instantiate ephemeral runtime agents
+- Resolve task inputs
+- Construct runtime prompts
+- Execute language models
+- Handle tool invocation
+- Compress tool outputs
+- Parse structured responses
+- Merge outputs into shared runtime state
+- Coordinate runtime execution
+
+Runtime agents communicate exclusively through the shared runtime state rather than conversational context.
+
+---
+
+## Tools
+
+External capabilities are exposed through a centralized runtime tool system.
+
+Responsibilities:
+
+- Register available tools
+- Maintain runtime tool catalog
+- Resolve tools during compilation
+- Bind tools to runtime agents
+- Execute external capabilities
+
+Current implementation includes:
+
+- Tavily Web Search
+
+The registry architecture allows additional capabilities such as retrieval, databases, code execution, browser automation, and external APIs to be integrated without modifying the runtime engine.
+
+---
+
+## Overall Responsibility
+
+The AI layer transforms natural language into deterministic execution through a sequence of independent subsystems:
+
+```text
+User Request
+      │
+      ▼
+Intent Analysis
+      │
+      ▼
+Clarification
+      │
+      ▼
+Execution Planning
+      │
+      ▼
+Blueprint Validation
+      │
+      ▼
+Agent Specification Generation
+      │
+      ▼
+Runtime Compilation
+      │
+      ▼
+Dynamic LangGraph
+      │
+      ▼
+Runtime Execution
+```
+
+Each subsystem operates on structured intermediate artifacts rather than raw natural language, enabling deterministic planning, runtime compilation, and explainable execution.
+
 # Configuration
 
 Application configuration is centralized inside:
@@ -820,75 +1182,104 @@ Environment variables allow sensitive configuration to remain outside the codeba
 
 # Current Development Stage
 
-The project has evolved into a complete authenticated AI chatbot platform.
+The project has progressed beyond a traditional chatbot architecture and now includes a complete planning and runtime execution pipeline.
 
-Current architecture:
+## Completed
 
-```text
-React Frontend
-        │
-        ▼
-Authentication
-(JWT + Refresh Token)
-        │
-        ▼
-Protected API Requests
-        │
-        ▼
-Express Backend
-        │
-        ▼
-Business Services
-        │
-        ├──────────────┐
-        ▼              ▼
-MongoDB         LangGraph Workflow
-        │              │
-        ▼              ▼
-Conversation DB   Groq LLM
-        │              │
-        └──────┬───────┘
-               ▼
-      Streaming Response
-               ▼
-        React UI Updates
-```
+### Backend Infrastructure
 
-Completed milestones:
-
-- MongoDB integration
-- User authentication
-- JWT access token authentication
-- Refresh token rotation
-- HttpOnly cookie authentication
-- Automatic session restoration
-- Protected API routes
+- Feature-based Express architecture
+- MongoDB persistence
+- Authentication system
+- JWT access and refresh tokens
+- OTP email verification
 - Conversation persistence
 - Message persistence
-- Conversation history retrieval
-- Conversation switching
-- LangGraph workflow integration
-- MemorySaver short-term memory
-- Streaming AI responses
-- Real-time frontend streaming
-- Zustand state management
-- Modular feature-based architecture
+- SSE streaming responses
 
-The project has progressed beyond a production-ready authenticated AI chatbot and is actively evolving into a runtime-generated AI orchestration platform.
+---
 
-The foundational planning layer has now been established.
-
-Completed AI runtime milestones include:
+### AI Planning Pipeline
 
 - Intent Analyzer
 - Clarification Node
 - Meta Architect
-- Blueprint Validator
+- Blueprint generation
+- Blueprint validation
 - Agent Specification Generator
 
-Together, these components transform natural language into a validated execution plan and synthesize deterministic runtime specifications for every execution task before runtime compilation begins.
+---
 
-Development is now transitioning from AI-driven planning toward deterministic runtime infrastructure, beginning with capability resolution, graph compilation, scheduling, governance, execution, verification, and reflection.
+### Runtime Infrastructure
+
+- Runtime graph compiler
+- Dynamic LangGraph generation
+- Runtime agent factory
+- Runtime execution engine
+- Runtime state management
+- Runtime input resolution
+- Runtime output validation
+- Runtime output merging
+
+---
+
+### Runtime Tool System
+
+- Tool catalog
+- Tool registry
+- Dynamic tool resolution
+- Dynamic tool binding
+- Tavily Web Search integration
+- Tool response compression
+- Duplicate tool-call caching
+
+---
+
+### Runtime Models
+
+- Centralized model registry
+- Runtime model selection
+- Multiple LLM support
+
+---
+
+## Currently In Progress
+
+The focus has shifted from infrastructure development to improving runtime intelligence and execution quality.
+
+Current work includes:
+
+- Runtime execution optimization
+- Smarter tool usage strategies
+- Conditional graph routing
+- Parallel task execution
+- Runtime retries
+- Error recovery
+- Output validation improvements
+- Cost and token optimization
+
+---
+
+## Planned
+
+The remaining work focuses on transforming the runtime engine into a production-grade autonomous agent platform.
+
+Planned components include:
+
+- Governance Layer
+- Verifier Agent
+- Reflection Agent
+- Runtime Memory
+- Planner feedback loop
+- Human approval checkpoints
+- Long-term memory
+- Knowledge retrieval
+- Runtime metrics
+- Execution tracing
+- Observability dashboard
+- Multi-agent parallel scheduling
+- Workflow visualization
+
 # Streaming Architecture
 
 The backend streams model responses incrementally to the frontend instead of waiting for the complete response to be generated.
@@ -936,115 +1327,145 @@ This provides a ChatGPT-style experience where users can read responses as they 
 
 ---
 
-# Next-Generation AI Architecture (Roadmap)
+# Roadmap
 
-The current chatbot architecture is actively evolving into a **dynamic runtime-generated multi-agent execution engine**. 
+The project is being developed incrementally toward a fully autonomous runtime-generated multi-agent platform.
 
-Unlike conventional multi-agent systems with predefined agents and fixed workflows, this upcoming architecture generates both the agents and their execution graph dynamically at runtime based on the exact specifications of the user's objective. 
+---
 
-The long-term goal is to transform the backend from a conversational chatbot into an AI orchestration platform capable of synthesizing, compiling, executing, validating, and improving execution graphs autonomously.
+## Phase 1 — Backend Foundation ✅ Completed
 
-## Runtime Execution Pipeline
+- Express backend architecture
+- MongoDB integration
+- JWT authentication
+- OTP email verification
+- Conversation persistence
+- Message persistence
+- SSE response streaming
+- Modular feature-based architecture
 
-```text
-User Request
-      │
-      ▼
-Intent Analyzer
-      │
-      ▼
-Intent Object (Intermediate Representation)
-      │
-      ▼
-Clarification Node
-      │
-      ▼
-Intent Object (Validated)
-      │
-      ▼
-Meta Architect
-      │
-      ▼
-Execution Blueprint
-      │
-      ▼
-Blueprint Validator
-      │
-      ▼
-Validated Blueprint
-      │
-      ▼
-Agent Specification Generator
-      │
-      ▼
-Runtime Graph Compiler
-      │
-      ▼
-Dynamic LangGraph
-      │
-      ▼
-Runtime Execution
-      │
-      ▼
-Verifier
-      │
-      ▼
-Response Composer
-      │
- (Background)
-      ▼
-Reflection Engine
-```## Runtime Execution Pipeline
+---
 
-```text
-User Request
-      │
-      ▼
-Intent Analyzer
-      │
-      ▼
-Intent Object (Intermediate Representation)
-      │
-      ▼
-Clarification Node
-      │
-      ▼
-Intent Object (Validated)
-      │
-      ▼
-Meta Architect
-      │
-      ▼
-Execution Blueprint
-      │
-      ▼
-Blueprint Validator
-      │
-      ▼
-Validated Blueprint
-      │
-      ▼
-Agent Specification Generator
-      │
-      ▼
-Runtime Graph Compiler
-      │
-      ▼
-Dynamic LangGraph
-      │
-      ▼
-Runtime Execution
-      │
-      ▼
-Verifier
-      │
-      ▼
-Response Composer
-      │
- (Background)
-      ▼
-Reflection Engine
-```Ftool
+## Phase 2 — AI Planning Pipeline ✅ Completed
+
+- Intent Analyzer
+- Clarification Node
+- Meta Architect
+- Execution Blueprint generation
+- Blueprint validation
+- Agent Specification Generator
+
+---
+
+## Phase 3 — Runtime Infrastructure ✅ Completed
+
+- Runtime graph compiler
+- Dynamic LangGraph generation
+- Runtime agent factory
+- Runtime execution engine
+- Shared runtime state
+- Runtime input resolution
+- Runtime output parsing
+- Runtime output merging
+- Dynamic model resolution
+- Dynamic tool resolution
+- Runtime executor
+
+---
+
+## Phase 4 — Runtime Tooling ✅ Completed
+
+- Tool catalog
+- Tool registry
+- Tavily Web Search integration
+- Dynamic tool binding
+- Tool result compression
+- Duplicate tool-call caching
+
+---
+
+## Phase 5 — Runtime Intelligence 🚧 In Progress
+
+Current focus areas include:
+
+- Conditional runtime routing
+- Parallel task execution
+- Runtime retry strategies
+- Improved prompt optimization
+- Runtime error recovery
+- Execution cost optimization
+- Token usage optimization
+- Enhanced runtime logging
+- Runtime metrics collection
+
+---
+
+## Phase 6 — Autonomous Runtime Platform 📌 Planned
+
+The following capabilities are planned to transform the runtime engine into a production-grade autonomous agent platform:
+
+### Governance
+
+- Governance layer
+- Policy enforcement
+- Runtime safety rules
+- Permission management
+
+### Quality Assurance
+
+- Verifier agents
+- Reflection agents
+- Self-correction pipeline
+- Output quality scoring
+
+### Memory
+
+- Long-term memory
+- Semantic retrieval
+- User preference memory
+- Execution memory
+- Knowledge storage
+
+### Scheduling
+
+- Parallel workflow scheduler
+- Dynamic worker allocation
+- Dependency-aware execution
+- Load balancing
+
+### Human Collaboration
+
+- Human approval checkpoints
+- Interruptible workflows
+- Manual task injection
+- Runtime overrides
+
+### Observability
+
+- Execution tracing
+- Runtime visualization
+- Graph inspection
+- Agent telemetry
+- Cost analytics
+- Token analytics
+- Execution metrics dashboard
+
+### Developer Experience
+
+- Runtime graph visualization
+- Blueprint inspection tools
+- Execution replay
+- Debugging interface
+- Workflow export/import
+
+---
+
+## Long-Term Vision
+
+The long-term objective is to build a general-purpose runtime orchestration platform capable of converting complex natural language requests into dynamically generated, self-contained multi-agent execution graphs.
+
+Rather than relying on predefined workflows, the system will synthesize execution plans, compile runtime graphs, orchestrate specialized agents, and adapt execution strategies based on the requirements of each individual task.
+
 
 # Intent Object (Intermediate Representation)
 
@@ -1417,6 +1838,34 @@ Each generated specification becomes the blueprint from which an Ephemeral Runti
 - Select the appropriate language model
 - Configure temperature
 - Define runtime tool strategy
+- Configure execution limits
+
+### Runtime Agent Specification
+
+Each generated specification contains:
+
+```text
+Task Identifier
+Persona
+Role
+System Prompt
+Model
+Temperature
+Tool Strategy
+Maximum Iterations
+
+### Responsibilities
+
+- Consume the validated Execution Blueprint
+- Generate one runtime specification per task
+- Produce deterministic system prompts
+- Define agent personas
+- Assign execution roles
+- Select the appropriate language model
+- Configure temperature
+- Define runtime tool strategy
+
+```
 
 ### Runtime Agent Specification
 
@@ -1541,6 +1990,47 @@ No runtime agents, nodes, or execution topology exist beforehand.
 - Consume the validated Execution Blueprint
 - Consume Runtime Agent Specifications
 - Instantiate ephemeral runtime agents
+- Resolve runtime models
+- Resolve runtime tools
+- Construct LangGraph nodes
+- Wire execution edges
+- Compile an executable StateGraph
+
+### Runtime Compilation Pipeline
+
+```text
+Validated Blueprint
+        │
+        ▼
+Runtime Agent Specifications
+        │
+        ▼
+Resolve Models
+        │
+        ▼
+Resolve Tools
+        │
+        ▼
+Instantiate Runtime Agents
+        │
+        ▼
+Create Runtime Nodes
+        │
+        ▼
+Connect Execution Edges
+        │
+        ▼
+Compile LangGraph
+        │
+        ▼
+Executable Runtime Graph
+```
+
+### Responsibilities
+
+- Consume the validated Execution Blueprint
+- Consume Runtime Agent Specifications
+- Instantiate ephemeral runtime agents
 - Bind language models
 - Bind runtime tools
 - Construct LangGraph nodes
@@ -1586,6 +2076,53 @@ The Runtime Graph Compiler never:
 - Produces user-facing responses
 
 Its sole responsibility is compiling runtime artifacts into an executable LangGraph.
+
+
+## Runtime Execution Engine
+
+Once the Runtime Graph Compiler produces an executable LangGraph, the Runtime Execution Engine becomes responsible for executing every ephemeral runtime agent while maintaining the shared execution state.
+
+Rather than relying on conversational memory between agents, all communication occurs through a deterministic shared runtime state.
+
+Each runtime agent:
+
+1. Resolves the inputs declared by its task's `expectedInput`.
+2. Receives only those resolved inputs together with its runtime specification.
+3. Executes its assigned tools when necessary.
+4. Produces structured JSON output.
+5. Validates that every declared `expectedOutput` has been produced.
+6. Merges those outputs into the shared runtime state.
+7. Passes execution to the next task according to the compiled graph.
+
+### Runtime Execution Cycle
+
+```text
+Runtime State
+        │
+        ▼
+Resolve Expected Inputs
+        │
+        ▼
+Construct Agent Prompt
+        │
+        ▼
+Invoke Runtime Agent
+        │
+        ▼
+Optional Tool Calls
+        │
+        ▼
+Structured JSON Output
+        │
+        ▼
+Validate Expected Outputs
+        │
+        ▼
+Merge Into Runtime State
+        │
+        ▼
+Next Runtime Agent
+```
 
 ## System Governor
 The safety net that wraps the dynamic graph in a strict control layer.
@@ -1701,3 +2238,215 @@ Reflection Report
 Each artifact represents a well-defined transformation stage with explicit responsibilities.
 
 This architecture enables deterministic debugging, replayable executions, complete execution traceability, and independent evolution of planning and execution subsystems.
+
+# How It Works
+
+Every request is processed through two independent phases:
+
+1. **Planning**
+2. **Runtime Execution**
+
+This separation allows the backend to dynamically generate specialized multi-agent workflows instead of relying on a fixed agent architecture.
+
+---
+
+## 1. User Request
+
+A user submits a request through the chat API.
+
+Example:
+
+> Plan a 14-day cultural and culinary trip to Japan for two people with a budget of $2500.
+
+The request is forwarded to the AI orchestration pipeline.
+
+---
+
+## 2. Intent Analysis
+
+The Intent Analyzer extracts the user's objective into a structured intent representation.
+
+Example outputs include:
+
+- Primary objective
+- Constraints
+- Required capabilities
+- Complexity estimate
+
+This structured representation becomes the foundation for the planning pipeline.
+
+---
+
+## 3. Clarification
+
+If required information is missing or ambiguous, the Clarification Node requests additional details.
+
+Examples include:
+
+- Budget
+- Dates
+- Preferred destinations
+- Travel style
+- Missing constraints
+
+Once sufficient information is available, execution proceeds automatically.
+
+---
+
+## 4. Meta Architecture Planning
+
+The Meta Architect decomposes the request into an executable workflow.
+
+Instead of solving the task directly, it produces a validated execution blueprint describing:
+
+- Tasks
+- Dependencies
+- Execution edges
+- Required tools
+- Expected inputs
+- Expected outputs
+- Success conditions
+
+This blueprint defines **what should be executed**, not **how it is executed**.
+
+---
+
+## 5. Blueprint Validation
+
+Before execution, the generated blueprint is validated.
+
+Validation includes:
+
+- Task integrity
+- Dependency correctness
+- Edge validation
+- Graph consistency
+- Execution constraints
+
+Invalid workflows are rejected before runtime compilation.
+
+---
+
+## 6. Agent Specification Generation
+
+For every task inside the validated blueprint, a runtime agent specification is generated.
+
+Each specification defines:
+
+- Persona
+- Role
+- Runtime system prompt
+- Model selection
+- Tool strategy
+- Iteration limits
+
+These specifications act as runtime blueprints for individual agents.
+
+---
+
+## 7. Runtime Compilation
+
+The Runtime Compiler combines:
+
+- Execution Blueprint
+- Agent Specifications
+
+to generate a completely new executable LangGraph.
+
+During compilation it:
+
+- Creates runtime nodes
+- Resolves models
+- Resolves tools
+- Wires execution edges
+- Produces an executable runtime graph
+
+No reasoning occurs during compilation.
+
+---
+
+## 8. Runtime Execution
+
+The compiled graph is immediately executed.
+
+Each runtime agent performs the following sequence:
+
+1. Resolve required inputs from shared runtime state.
+2. Construct a runtime prompt.
+3. Invoke the assigned language model.
+4. Call external tools when required.
+5. Compress tool responses.
+6. Produce structured JSON output.
+7. Merge results into shared runtime state.
+
+Each agent operates independently while sharing execution state with downstream agents.
+
+---
+
+## 9. Tool Invocation
+
+When runtime agents require external information, they invoke tools through the centralized runtime tool registry.
+
+Current capabilities include:
+
+- Tavily Web Search
+
+Tool responses are:
+
+- Cached within the agent
+- Compressed before re-entering the context window
+- Passed back as structured ToolMessages
+
+This minimizes token consumption while preserving relevant information.
+
+---
+
+## 10. Runtime State Propagation
+
+Runtime agents never communicate directly.
+
+Instead, every successful task writes its outputs into the shared runtime state.
+
+Subsequent agents resolve their required inputs directly from this state.
+
+Example:
+
+```text
+Initialize Trip Planner
+            │
+            ▼
+trip_parameters
+            │
+            ▼
+Research Destination Options
+            │
+            ▼
+destination_options
+            │
+            ▼
+Optimize Transportation
+            │
+            ▼
+transportation_plan
+            │
+            ▼
+Plan Accommodations
+            │
+            ▼
+accommodation_plan
+            │
+            ▼
+...
+```
+
+This creates deterministic data flow throughout execution.
+
+---
+
+## 11. Final Output
+
+Once every runtime agent has completed successfully, the runtime graph returns the final shared execution state.
+
+The backend extracts the requested final artifact and streams it back to the client using Server-Sent Events (SSE).
+
+Because the workflow itself is generated dynamically, two different user requests may execute entirely different runtime graphs while sharing the same underlying execution engine.

@@ -1,5 +1,5 @@
 import { ChatGroq } from "@langchain/groq"
-import { env } from "../../config/env"
+import { env } from "../../config/env.js"
 
 export const gptSafeguard = new ChatGroq({
     model: "openai/gpt-oss-safeguard-20b",

@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { architectPrompt } from "../prompts/architect.prompt.js";
-import { llama70b } from "../models/llama-70b.js"
+import { llama17b } from "../models/llama-17b.js"
 import { gpt120b } from "../models/gpt-120b.js"
-import { TOOL_REGISTRY } from "../tools/registry,js";
-import { AVAILABLE_TOOL_NAMES } from "../tools/registry,js";
+import { AVAILABLE_TOOL_NAMES, TOOL_CATALOG } from "../tools/catalog.js";
 
 // ==========================================
 // 1. YOUR EXACT SCHEMAS (With the Empty Array Fix)
@@ -93,7 +92,7 @@ const RouterSchema = z.object({
 // ==========================================
 // 3. THE NODE EXECUTION
 // ==========================================
-const plannerModel = llama70b.withStructuredOutput(PlannerSchema, { name: "generate_tasks" });
+const plannerModel = llama17b.withStructuredOutput(PlannerSchema, { name: "generate_tasks" });
 const routerModel = gpt120b.withStructuredOutput(RouterSchema, { name: "generate_routes" });
 
 
@@ -111,7 +110,7 @@ export const architectNode = async (state) => {
             content: JSON.stringify({
                 intent: state.intent,
                 clarification: state.clarification || null,
-                available_system_tools: TOOL_REGISTRY
+                available_system_tools: TOOL_CATALOG
             }, null, 2)
         }
     ]);

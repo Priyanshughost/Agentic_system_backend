@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { agentSpecificationPrompt } from "../prompts/agentSpecification.prompt.js";
 import { gpt120b } from "../models/gpt-120b.js";
+import { llama22m } from "../models/llama-22m.js";
+import { llama86m } from "../models/llama-86m.js";
+import { llama17b } from "../models/llama-17b.js";
 
 const AgentSpecificationSchema = z.object({
 
@@ -31,7 +34,7 @@ const AgentSpecificationSchema = z.object({
 })
 
 const structuredModel =
-    gpt120b.withStructuredOutput(
+    llama17b.withStructuredOutput(
         AgentSpecificationSchema,
         { name: "generate_agent_specification" }
     );

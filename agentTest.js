@@ -5,108 +5,106 @@ import { agentSpecificationNode } from "./src/ai/nodes/agentSpecification.node.j
 const mockState = {
     blueprint: {
         "metadata": {
-            "id": "japan_trip_planner",
+            "id": "japan_trip_planning",
             "version": "1.0.0",
             "generatedFrom": "Intent Object",
             "complexity": "HIGH"
         },
         "execution": {
-            "entryTask": "initialize_trip_planner",
-            "allowParallel": false,
+            "entryTask": "init_trip_planning",
+            "allowParallel": true,
             "allowLoops": false,
             "maxRetries": 3,
-            "maxTasks": 7
+            "maxTasks": 14
         },
         "tasks": [
             {
-                "id": "initialize_trip_planner",
-                "name": "Initialize Trip Planner",
-                "objective": "Define the scope and constraints of the trip planning task",
-                "rationale": "Establish the foundation for the trip planning process",
+                "id": "init_trip_planning",
+                "name": "Initialize Trip Planning",
+                "objective": "Define trip parameters and constraints",
+                "rationale": "Establishes the foundation for the trip planning process",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [],
-                "expectedInput": [
-                    "intent",
-                    "clarification",
-                    "available_system_tools"
-                ],
+                "expectedInput": [],
                 "expectedOutput": [
                     "trip_parameters"
                 ],
                 "successCriteria": [
-                    "trip_parameters defined"
+                    "Trip parameters defined"
                 ]
             },
             {
-                "id": "research_destination_options",
-                "name": "Research Destination Options",
-                "objective": "Gather information on potential destinations in Japan",
-                "rationale": "Inform the trip planning process with relevant destination information",
+                "id": "define_starting_location",
+                "name": "Define Starting Location",
+                "objective": "Determine the starting location for the trip",
+                "rationale": "Critical for planning transportation and accommodations",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "initialize_trip_planner"
+                    "init_trip_planning"
                 ],
                 "expectedInput": [
                     "trip_parameters"
                 ],
                 "expectedOutput": [
-                    "destination_options"
+                    "starting_location"
                 ],
                 "successCriteria": [
-                    "at least 5 destination options identified"
+                    "Starting location identified"
                 ]
             },
             {
-                "id": "optimize_transportation",
-                "name": "Optimize Transportation",
-                "objective": "Determine the most efficient transportation options between destinations",
-                "rationale": "Minimize travel time and costs",
+                "id": "plan_transportation",
+                "name": "Plan Transportation",
+                "objective": "Optimize transportation across Japan",
+                "rationale": "Essential for minimizing travel time and costs",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "research_destination_options"
+                    "define_starting_location"
                 ],
                 "expectedInput": [
-                    "destination_options"
+                    "starting_location",
+                    "trip_parameters"
                 ],
                 "expectedOutput": [
                     "transportation_plan"
                 ],
                 "successCriteria": [
-                    "transportation plan defined"
+                    "Transportation plan optimized"
                 ]
             },
             {
                 "id": "plan_accommodations",
                 "name": "Plan Accommodations",
-                "objective": "Book accommodations that meet the trip parameters and budget",
-                "rationale": "Ensure comfortable and affordable accommodations",
+                "objective": "Optimize accommodations within budget",
+                "rationale": "Critical for ensuring comfortable stay within budget",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "optimize_transportation"
+                    "plan_transportation"
                 ],
                 "expectedInput": [
-                    "transportation_plan"
+                    "transportation_plan",
+                    "trip_parameters"
                 ],
                 "expectedOutput": [
                     "accommodation_plan"
                 ],
                 "successCriteria": [
-                    "accommodation plan defined"
+                    "Accommodation plan finalized"
                 ]
             },
             {
                 "id": "plan_sightseeing",
                 "name": "Plan Sightseeing",
-                "objective": "Create a sightseeing itinerary that meets the trip parameters and budget",
-                "rationale": "Maximize the trip's cultural and entertainment value",
+                "objective": "Plan sightseeing activities within budget and time",
+                "rationale": "Essential for maximizing travel experience",
                 "requiredTools": [
                     "web_search_tool"
                 ],
@@ -114,20 +112,21 @@ const mockState = {
                     "plan_accommodations"
                 ],
                 "expectedInput": [
-                    "accommodation_plan"
+                    "accommodation_plan",
+                    "trip_parameters"
                 ],
                 "expectedOutput": [
-                    "sightseeing_itinerary"
+                    "sightseeing_plan"
                 ],
                 "successCriteria": [
-                    "sightseeing itinerary defined"
+                    "Sightseeing plan finalized"
                 ]
             },
             {
-                "id": "plan_food_and_activities",
-                "name": "Plan Food and Activities",
-                "objective": "Create a plan for food and activities that meets the trip parameters and budget",
-                "rationale": "Enhance the trip's overall experience",
+                "id": "plan_food",
+                "name": "Plan Food",
+                "objective": "Plan food budget and options",
+                "rationale": "Critical for staying within budget and satisfying culinary needs",
                 "requiredTools": [
                     "web_search_tool"
                 ],
@@ -135,55 +134,57 @@ const mockState = {
                     "plan_sightseeing"
                 ],
                 "expectedInput": [
-                    "sightseeing_itinerary"
+                    "sightseeing_plan",
+                    "trip_parameters"
                 ],
                 "expectedOutput": [
-                    "food_and_activities_plan"
+                    "food_plan"
                 ],
                 "successCriteria": [
-                    "food and activities plan defined"
+                    "Food plan finalized"
                 ]
             },
             {
-                "id": "generate_day_by_day_itinerary",
-                "name": "Generate Day-by-Day Itinerary",
-                "objective": "Combine all plans into a comprehensive day-by-day itinerary",
-                "rationale": "Provide a clear and actionable trip plan",
+                "id": "finalize_itinerary",
+                "name": "Finalize Day-by-Day Itinerary",
+                "objective": "Compile all plans into a day-by-day itinerary",
+                "rationale": "Essential for providing a clear travel plan",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "plan_food_and_activities"
+                    "plan_food"
                 ],
                 "expectedInput": [
-                    "food_and_activities_plan"
+                    "food_plan",
+                    "trip_parameters"
                 ],
                 "expectedOutput": [
                     "day_by_day_itinerary"
                 ],
                 "successCriteria": [
-                    "day-by-day itinerary defined"
+                    "Itinerary finalized"
                 ]
             }
         ],
         "edges": [
             {
                 "from": "START",
-                "to": "initialize_trip_planner",
+                "to": "init_trip_planning",
                 "condition": "ALWAYS"
             },
             {
-                "from": "initialize_trip_planner",
-                "to": "research_destination_options",
+                "from": "init_trip_planning",
+                "to": "define_starting_location",
                 "condition": "SUCCESS"
             },
             {
-                "from": "research_destination_options",
-                "to": "optimize_transportation",
+                "from": "define_starting_location",
+                "to": "plan_transportation",
                 "condition": "SUCCESS"
             },
             {
-                "from": "optimize_transportation",
+                "from": "plan_transportation",
                 "to": "plan_accommodations",
                 "condition": "SUCCESS"
             },
@@ -194,16 +195,16 @@ const mockState = {
             },
             {
                 "from": "plan_sightseeing",
-                "to": "plan_food_and_activities",
+                "to": "plan_food",
                 "condition": "SUCCESS"
             },
             {
-                "from": "plan_food_and_activities",
-                "to": "generate_day_by_day_itinerary",
+                "from": "plan_food",
+                "to": "finalize_itinerary",
                 "condition": "SUCCESS"
             },
             {
-                "from": "generate_day_by_day_itinerary",
+                "from": "finalize_itinerary",
                 "to": "END",
                 "condition": "SUCCESS"
             }
@@ -214,14 +215,15 @@ const mockState = {
             "requiresHumanApproval": false
         },
         "successCriteria": [
-            "Itinerary spans exactly 14 days",
-            "Total estimated cost does not exceed $2500",
-            "All planning tasks completed with SUCCESS condition",
-            "Final itinerary includes optimized transportation, accommodation, sightseeing, and food plans"
+            "Day-by-day itinerary delivered in the specified JSON format",
+            "Total estimated cost of the itinerary does not exceed $2500",
+            "All major transportation segments are optimized for minimal travel time",
+            "Accommodation selections stay within the allocated budget portion",
+            "Sightseeing and food plans respect the overall budget and time constraints"
         ],
         "finalOutput": {
-            "artifact": "Comprehensive 14‑day Japan itinerary covering transportation, accommodations, sightseeing, food, and budget details",
-            "format": "Day‑by‑Day Itinerary Document (JSON)"
+            "artifact": "14-day Japan trip itinerary with detailed daily transportation, accommodation, sightseeing, and food budgeting",
+            "format": "JSON document where each day includes fields: date, location, transport, accommodation, activities, food_budget, estimated_cost"
         }
     }
 };
