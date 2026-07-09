@@ -3,37 +3,60 @@ import {
     START,
     END,
 } from "@langchain/langgraph";
-import { intentNode } from "../nodes/intent.node";
-import { clarificationNode } from "../nodes/clarification.node";
-import { architectNode } from "../nodes/architect.node";
+import { intentNode } from "../nodes/intent.node.js";
+import { clarificationNode } from "../nodes/clarification.node.js";
+import { architectNode } from "../nodes/architect.node.js";
+import { agentSpecificationNode } from "../nodes/agentSpecification.node.js";
+import { globalState } from "../state/globalState.js";
+import { runtimeNode } from "../nodes/runtime.node.js";
 
 const workflow =
-    new StateGraph(ChatState);
+    new StateGraph(globalState);
 
 workflow.addNode(
-    "intent",
+    "intentAnalyzer",
     intentNode
 );
 
 workflow.addNode(
-    "clarification",
-    clarificationNode
-)
+    "metaArchitect",
+    architectNode
+);
 
 workflow.addNode(
-    "architect",
-    architectNode
-)
+    "runtimeExecution",
+    runtimeNode
+);
+
+workflow.addNode(
+    "agentSpecificationGenerator",
+    agentSpecificationNode
+);
 
 workflow.addEdge(
     START,
-    "intent"
+    "intentAnalyzer"
 );
 
 workflow.addEdge(
-    "architect",
+    "intentAnalyzer",
+    "metaArchitect"
+);
+
+workflow.addEdge(
+    "metaArchitect",
+    "agentSpecificationGenerator"
+);
+
+workflow.addEdge(
+    "agentSpecificationGenerator",
+    "runtimeExecution"
+);
+
+workflow.addEdge(
+    "runtimeExecution",
     END
 );
 
-export const chatGraph =
+export const testGraph =
     workflow.compile();

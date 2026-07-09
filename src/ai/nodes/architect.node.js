@@ -79,13 +79,10 @@ const PlannerSchema = z.object({
     metadata: MetadataSchema,
     execution: ExecutionSchema,
     tasks: z.array(TaskSchema).describe("Limit to a maximum of 7 critical tasks to ensure stability.")
-});
+}).passthrough()
 
 const RouterSchema = z.object({
     edges: z.array(EdgeSchema).describe("The routing topology connecting your agents. MUST form a valid graph."),
-    constraints: ConstraintSchema,
-    successCriteria: z.array(z.string()),
-    finalOutput: OutputSchema
 });
 
 
@@ -97,6 +94,9 @@ const routerModel = gpt120b.withStructuredOutput(RouterSchema, { name: "generate
 
 
 export const architectNode = async (state) => {
+    console.log("\nInside the architect node\n printing state\n")
+    console.dir(state, { depth: null })
+    console.log("\n\n")
 
     console.log("📐 Meta-Architect [Part 1]: Generating tasks...");
 

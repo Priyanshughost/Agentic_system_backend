@@ -4,34 +4,28 @@ import { gpt120b } from "../models/gpt-120b.js";
 import { llama22m } from "../models/llama-22m.js";
 import { llama86m } from "../models/llama-86m.js";
 import { llama17b } from "../models/llama-17b.js";
+import { qwen27b } from "../models/qwen27b.js";
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 const AgentSpecificationSchema = z.object({
-
     taskId: z.string().describe("Must exactly match the 'id' of the task from the blueprint."),
 
-    persona: z.string().describe(
-        "Concise professional identity (2–4 words), e.g. 'Transportation Planner', 'Database Architect', 'Research Analyst'."
-    ),
+    persona: z.string().describe("Concise professional identity (2–4 words), e.g. 'Transportation Planner', 'Database Architect'."),
 
-    role: z.string().describe("The specific technical or operational job title of this agent (e.g., 'Database Architect', 'API Integration Specialist')."),
+    role: z.string().describe("The specific technical or operational job title of this agent."),
 
-    systemPrompt: z.string().describe(
-        "Concise detailed runtime system instructions following this structure: Objective, Inputs, Outputs, Rules. Avoid repeating information already present in the Blueprint."
-    ),
+    // UPDATE THIS DESCRIPTION
+    systemPrompt: z.string().describe("A production-ready multi-line instruction containing exactly these sections: Objective, Inputs, Outputs, Rules, and CRITICAL OUTPUT CONTRACT. The contract must require returning ONLY valid JSON whose top-level keys exactly match every expected output field of the task."),
 
     model: z.string().describe("The specific LLM identifier best suited for this agent's complexity."),
 
-    temperature: z.number().min(0).max(1).describe("The creativity threshold. Use 0 for strict determinism (code/math), higher for creative/generative tasks."),
+    temperature: z.number().min(0).max(1).describe("The creativity threshold. Use 0 for strict determinism, higher for generative tasks."),
 
-    toolStrategy: z.enum([
-        "NONE",
-        "AUTO",
-        "REQUIRED"
-    ]).describe("Defines whether this agent is allowed, forced, or forbidden to trigger bound capabilities/tools."),
+    toolStrategy: z.enum(["NONE", "AUTO", "REQUIRED"]).describe("Defines whether this agent is allowed, forced, or forbidden to trigger tools."),
 
-    maxIterations: z.number().int().positive().describe("The hard limit on reasoning loops this agent can perform before forcefully returning control to the graph."),
-
-})
+    // UPDATE THIS DESCRIPTION
+    maxIterations: z.number().int().positive().max(10).describe("Keep this very low (e.g., 3, 5, or 7) for safety. Never exceed 10.")
+});
 
 const structuredModel =
     llama17b.withStructuredOutput(
@@ -40,6 +34,9 @@ const structuredModel =
     );
 
 export const agentSpecificationNode = async (state) => {
+    console.log("\nInside the agent specification node\n printing state\n")
+    console.dir(state, { depth: null })
+    console.log("\n\n")
 
     console.log(
         "🧬 Agent Specification Generator is creating runtime agent specifications..."
@@ -53,8 +50,12 @@ export const agentSpecificationNode = async (state) => {
             `🧬 Generating specification for: ${task.name}`
         );
 
-        const specification =
-            await structuredModel.invoke([
+        const requiredJsonFormat = Object.fromEntries(
+            task.expectedOutput.map(key => [key, "<value>"])
+        );
+
+        const specification = await retryWithRateLimit(() =>
+            structuredModel.invoke([
                 {
                     role: "system",
                     content: agentSpecificationPrompt
@@ -63,16 +64,15 @@ export const agentSpecificationNode = async (state) => {
                     role: "user",
                     content: JSON.stringify({
                         task,
-                        blueprintMetadata:
-                            state.blueprint.metadata,
-                        execution:
-                            state.blueprint.execution,
-                        constraints:
-                            state.blueprint.constraints
+                        blueprintMetadata: state.blueprint.metadata,
+                        execution: state.blueprint.execution,
+                        constraints: state.blueprint.constraints,
+                        requiredJsonFormat
                     })
                 }
-            ]);
-
+            ])
+        );
+        console.dir(specification, {depth: null})
         specifications.push(specification);
 
     }

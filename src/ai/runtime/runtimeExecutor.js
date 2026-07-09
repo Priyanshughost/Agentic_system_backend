@@ -39,7 +39,7 @@ export const runtimeExecutor = async ({
 
     console.log("========================================");
     console.log("✅ Runtime Execution Finished");
-    console.log("========================================");
+    console.log(`====================\n${finalState}\n====================`);
 
     return finalState;
 

@@ -44,15 +44,6 @@ export const RuntimeState = Annotation.Root({
     toolResults: Annotation({
         reducer: (_, value) => value,
         default: () => []
-    }),
-
-    // --------------------------------------------------
-    // Final Runtime Output
-    // --------------------------------------------------
-
-    finalOutput: Annotation({
-        reducer: (_, value) => value,
-        default: () => null
     })
-
+    
 });

@@ -5,8 +5,7 @@ import { mergeOutputs } from "./outputMerger.js";
 import { parseRuntimeOutput } from "./parseRuntimeOutput.js";
 import { ToolMessage } from "@langchain/core/messages";
 import { processToolResult } from "./processToolResult.js";
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 export const createRuntimeAgent = ({
     task,
@@ -15,8 +14,9 @@ export const createRuntimeAgent = ({
 }) => {
 
     return async (state) => {
-
-        console.log("");
+        // console.log("\nInside the runtime agent node\n printing state\n")
+        // console.dir(state, { depth: null })
+        // console.log("\n\n")
         console.log("====================================");
         console.log(`🤖 ${task.name}`);
         console.log("====================================");
@@ -54,7 +54,19 @@ export const createRuntimeAgent = ({
         // ---------------------------------
         // Invoke LLM Configuration
         // ---------------------------------
-        const llm = model.bindTools(tools);
+        let llm;
+
+        if (
+            specification.toolStrategy === "NONE"
+        ) {
+
+            llm = model;
+
+        } else {
+
+            llm = model.bindTools(tools);
+
+        }
         let conversation = [...messages];
         let toolCalls = 0;
         const toolCache = new Map();
@@ -65,52 +77,24 @@ export const createRuntimeAgent = ({
         while (true) {
             console.log(`\n  [Iteration ${iteration}] 🧠 Invoking LLM... (Context length: ${conversation.length} messages)`);
 
-            // ---------------------------------
-            // Invoke LLM with Smart Rate Limit Catching
-            // ---------------------------------
-            let response;
-            while (true) {
-                try {
-                    response = await llm.invoke(conversation);
-                    break;
-                } catch (error) {
-                    if (error.message && error.message.includes("429") && error.message.includes("Please try again in")) {
-                        const match = error.message.match(/try again in ([\d\.]+)s/);
-                        const waitSeconds = match ? parseFloat(match[1]) : 15;
-                        const waitMs = (waitSeconds * 1000) + 1000;
-
-                        console.log(`\n  ⚠️ GROQ RATE LIMIT HIT!`);
-                        console.log(`  ⏱️ Sleeping for ${waitSeconds} seconds before automatically retrying...`);
-                        await sleep(waitMs);
-                        console.log(`  🔄 Retrying LLM invocation...`);
-                    } else {
-                        throw error;
-                    }
-                }
-            }
+            const response = await retryWithRateLimit(() =>
+                llm.invoke(conversation)
+            );
 
             conversation.push(response);
 
             // ---------------------------------
-            // EXIT CONDITION: No tools requested
-            // ---------------------------------
+            // EXIT CONDITION: No valid tools requested
+
             if (!response.tool_calls?.length) {
                 console.log(`  [Iteration ${iteration}] 🏁 LLM finished thinking. Parsing final output...`);
-                let output;
 
-                try {
-                    output = parseRuntimeOutput({
-                        task,
-                        response
-                    });
-                } catch {
-                    throw new Error(`Task "${task.id}" returned invalid JSON.`);
-                }
+                console.log("\n======================================\n");
 
                 return mergeOutputs({
                     task,
                     state,
-                    output
+                    output: response.content
                 });
             }
 

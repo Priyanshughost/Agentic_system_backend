@@ -85,9 +85,7 @@ const IntentSchema = z.object({
         expectedOutput: z.number().min(0).max(1),
         taskType: z.number().min(0).max(1),
         overall: z.number().min(0).max(1)
-    })
-        // 👇 The magic method that makes it dynamic
-        .catchall(z.number().min(0).max(1))
+    }).catchall(z.number())
         .describe(
             "Confidence scores for the extracted intent fields. You may dynamically add additional keys if needed, as long as the value is a number between 0.0 and 1.0."
         )
@@ -97,7 +95,9 @@ const structuredModel =
     gpt20b.withStructuredOutput(IntentSchema);
 
 export const intentNode = async (state) => {
-
+    console.log("\nInside the intent node\n printing state\n")
+    console.dir(state, { depth: null })
+    console.log("\n\n")
     const intent =
         await structuredModel.invoke([
             {
