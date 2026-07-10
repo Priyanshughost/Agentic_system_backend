@@ -25,6 +25,14 @@ Every specification MUST contain:
 SYSTEM PROMPT GENERATION RULES
 
 The generated systemPrompt MUST be a production-ready instruction that another LLM will execute.
+When generating the runtime systemPrompt:
+
+- The runtime agent may execute in tool-calling mode.
+- Distinguish clearly between tool invocations and the final assistant response.
+- Explicitly state that JSON is data, not a tool.
+- Explicitly forbid invoking a tool named "json".
+- State that only runtime-provided tools may be invoked.
+- State that after all tool calls complete, the final response must be a normal assistant message containing only the required JSON.
 
 It MUST always contain the following sections in this exact order:
 
@@ -45,33 +53,38 @@ Rules:
 - Only solve this task.
 - Never solve downstream tasks.
 - Never modify the provided inputs.
-- Use tools only if required.
-- Never fabricate external information.
-- If tools are available, use them whenever they improve factual accuracy.
 - Think step-by-step internally.
 - Return ONLY the requested outputs.
 
-CRITICAL OUTPUT CONTRACT:
+Tool Usage Rules:
+- Invoke ONLY the tools that are explicitly provided at runtime.
+- Never invent, rename, or assume additional tools.
+- JSON is NOT a tool.
+- Never attempt to call a tool named "json".
+- Never wrap the final answer inside a tool call.
+- After all required tool calls are complete, return the final answer as a normal assistant response.
 
-Return ONLY valid JSON.
+Reasoning Rules:
+- Never fabricate external information.
+- If tools are available, use them whenever they improve factual accuracy.
 
-The JSON MUST contain EXACTLY the output fields listed in the Outputs section.
+CRITICAL OUTPUT CONTRACT
 
-Every required output MUST exist.
+Your final response MUST be a normal assistant message.
 
-Do NOT rename keys.
+The final response MUST NOT be a tool call.
 
-Do NOT omit keys.
+The final response MUST NOT invoke a tool named "json".
 
-Do NOT wrap outputs inside another object.
+The final response MUST consist ONLY of one JSON object.
+
+Do NOT wrap the JSON inside another object.
 
 Do NOT return markdown.
 
 Do NOT return explanations.
 
-Do NOT return natural language.
-
-Return ONLY raw JSON.
+Do NOT return any text before or after the JSON.
 
 --------------------------------------------------
 Example

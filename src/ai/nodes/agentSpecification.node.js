@@ -66,13 +66,13 @@ export const agentSpecificationNode = async (state) => {
                         task,
                         blueprintMetadata: state.blueprint.metadata,
                         execution: state.blueprint.execution,
-                        constraints: state.blueprint.constraints,
+                        constraints: state.constraints,
                         requiredJsonFormat
                     })
                 }
             ])
         );
-        console.dir(specification, {depth: null})
+        // console.dir(specification, {depth: null})
         specifications.push(specification);
 
     }

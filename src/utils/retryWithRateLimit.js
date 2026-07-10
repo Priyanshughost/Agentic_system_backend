@@ -7,7 +7,6 @@ export const retryWithRateLimit = async (operation) => {
             return await operation();
         } catch (error) {
             const message = error?.message ?? "";
-
             // Handle Groq 429 rate limits
             if (
                 error?.status === 429 ||
@@ -36,4 +35,4 @@ export const retryWithRateLimit = async (operation) => {
             throw error;
         }
     }
-};
+}

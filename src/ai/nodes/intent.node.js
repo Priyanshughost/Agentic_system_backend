@@ -111,6 +111,7 @@ export const intentNode = async (state) => {
         ]);
 
     return {
-        intent
+        intent,
+        constraints: intent.constraints
     };
 };

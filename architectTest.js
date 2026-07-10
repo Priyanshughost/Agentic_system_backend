@@ -8,37 +8,43 @@ async function testArchitect() {
     // 1. Mock the state using the exact Intent payload
     const mockState = {
         intent: {
-            goal: 'Plan a 14-day trip across Japan with a maximum budget of $2500, optimizing transportation, accommodations, sightseeing, food, and travel time, and produce a day-by-day itinerary.',
-            problemDomain: ['Travel', 'Tourism'],
+            goal: 'Plan a 7 day trip across Japan with a budget of 750000 INR from India',
+            problemDomain: ['Travel Planning', 'Tourism'],
             technologies: [],
             features: [
-                'transportation optimization',
-                'accommodation optimization',
-                'sightseeing planning',
-                'food budgeting',
-                'travel time optimization'
+                '7-day itinerary',
+                'budget constraint',
+                'travel from India',
+                'accommodation planning',
+                'transportation planning',
+                'activity suggestions'
             ],
-            intentCategory: 'CREATE',
+            intentCategory: 'PLAN',
             taskType: 'PLANNING',
-            constraints: ['Maximum budget of $2500'],
+            constraints: ['Budget: 750000 INR', 'Duration: 7 days', 'Origin: India'],
             inputs: [],
-            expectedOutput: 'Day-by-day itinerary',
+            expectedOutput: 'Detailed day-by-day itinerary in JSON format',
             ambiguities: [
-                'Starting location not specified',
-                'Personal preferences (e.g., food, activities) not specified'
+                'Preferred travel dates',
+                'Preferred cities or regions',
+                'Accommodation preferences',
+                'Transportation preferences',
+                'Activity preferences',
+                'Meal preferences',
+                'Currency conversion details'
             ],
             requiresClarification: false,
-            complexity: { reasoning: 'HIGH', execution: 'HIGH', overall: 'HIGH' },
+            complexity: { reasoning: 'MEDIUM', execution: 'MEDIUM', overall: 'MEDIUM' },
             confidence: {
                 goal: 0.95,
-                technologies: 0.95,
-                constraints: 0.95,
-                expectedOutput: 0.95,
+                technologies: 0.2,
+                constraints: 0.9,
+                expectedOutput: 0.8,
                 taskType: 0.95,
-                overall: 0.95
+                overall: 0.9
             }
-        },
-        
+        }
+
     };
 
     try {

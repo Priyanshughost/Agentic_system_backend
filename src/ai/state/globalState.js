@@ -12,6 +12,11 @@ export const globalState = Annotation.Root({
         default: () => null
     }),
 
+    constraints: Annotation({
+        reducer: (_, value) => value,
+        default: () => null
+    }),
+
     clarification: Annotation({
         reducer: (_, value) => value,
         default: () => null

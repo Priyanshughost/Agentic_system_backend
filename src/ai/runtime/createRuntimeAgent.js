@@ -6,6 +6,7 @@ import { parseRuntimeOutput } from "./parseRuntimeOutput.js";
 import { ToolMessage } from "@langchain/core/messages";
 import { processToolResult } from "./processToolResult.js";
 import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
+import { extractHallucinatedJsonTool } from "../../utils/extractHallucinatedJsonTool.js";
 
 export const createRuntimeAgent = ({
     task,
@@ -76,10 +77,26 @@ export const createRuntimeAgent = ({
         // Removed the maxIterations bound. It will loop until it decides it is finished.
         while (true) {
             console.log(`\n  [Iteration ${iteration}] 🧠 Invoking LLM... (Context length: ${conversation.length} messages)`);
+            let response
+            try {
 
-            const response = await retryWithRateLimit(() =>
-                llm.invoke(conversation)
-            );
+                response = await retryWithRateLimit(() =>
+                    llm.invoke(conversation)
+                );
+
+            }
+            catch (error) {
+
+                const recovered = extractHallucinatedJsonTool(error);
+
+                if (!recovered) {
+                    throw error;
+                }
+
+                console.log("⚠️ Recovered hallucinated JSON tool.");
+
+                response = JSON.stringify(recovered)
+            }
 
             conversation.push(response);
 
@@ -89,12 +106,17 @@ export const createRuntimeAgent = ({
             if (!response.tool_calls?.length) {
                 console.log(`  [Iteration ${iteration}] 🏁 LLM finished thinking. Parsing final output...`);
 
-                console.log("\n======================================\n");
+                console.log(`\n===================\n${JSON.stringify(response, null, 2)}\n===================\n`);
+
+                const output = parseRuntimeOutput({
+                    task,
+                    response
+                });
 
                 return mergeOutputs({
                     task,
                     state,
-                    output: response.content
+                    output
                 });
             }
 

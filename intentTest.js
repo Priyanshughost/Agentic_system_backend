@@ -1,11 +1,7 @@
 import { intentNode } from "./src/ai/nodes/intent.node.js";
 const state = {
     userQuery: `
-Plan a 14-day trip across Japan with a maximum budget of $2500.
-
-Optimize transportation, accommodations, sightseeing, food, and travel time.
-
-Produce a day-by-day itinerary.
+Plan a 7 day trip across Japan with a budget of 750000 INR from india and dont ask for any clarifications.
 `
 };
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { architectPrompt } from "../prompts/architect.prompt.js";
+import { plannerPrompt, routerPrompt } from "../prompts/architect.prompt.js";
 import { llama17b } from "../models/llama-17b.js"
 import { gpt120b } from "../models/gpt-120b.js"
 import { AVAILABLE_TOOL_NAMES, TOOL_CATALOG } from "../tools/catalog.js";
@@ -103,7 +103,7 @@ export const architectNode = async (state) => {
     const plannerResult = await plannerModel.invoke([
         {
             role: "system",
-            content: architectPrompt + "\n\nPHASE 1: Focus only on creating the metadata, execution parameters, and the specific tasks needed."
+            content: plannerPrompt
         },
         {
             role: "user",
@@ -120,7 +120,7 @@ export const architectNode = async (state) => {
     const routerResult = await routerModel.invoke([
         {
             role: "system",
-            content: architectPrompt + "\n\nPHASE 2: Review the provided tasks and generate the edges (routing logic), constraints, and final output."
+            content: routerPrompt
         },
         {
             role: "user",

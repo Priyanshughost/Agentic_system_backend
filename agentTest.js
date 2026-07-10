@@ -6,12 +6,12 @@ const mockState = {
     blueprint: {
         "metadata": {
             "id": "japan_trip_planning",
-            "version": "1.0.0",
+            "version": "1.0",
             "generatedFrom": "Intent Object",
-            "complexity": "HIGH"
+            "complexity": "MEDIUM"
         },
         "execution": {
-            "entryTask": "init_trip_planning",
+            "entryTask": "trip_parameters_extraction",
             "allowParallel": true,
             "allowLoops": false,
             "maxRetries": 3,
@@ -19,226 +19,179 @@ const mockState = {
         },
         "tasks": [
             {
-                "id": "init_trip_planning",
-                "name": "Initialize Trip Planning",
-                "objective": "Gather initial information about the trip, including budget and duration.",
-                "rationale": "Sets the foundation for the trip planning process.",
+                "id": "trip_parameters_extraction",
+                "name": "Extract Trip Parameters",
+                "objective": "Extract and clarify trip parameters such as travel dates, preferred cities or regions, accommodation preferences, transportation preferences, activity preferences, and meal preferences.",
+                "rationale": "This task is necessary to gather required information for planning a personalized trip.",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [],
-                "expectedInput": [],
+                "expectedInput": [
+                    "intent"
+                ],
                 "expectedOutput": [
-                    "starting_location",
-                    "travel_dates",
-                    "budget"
+                    "tripParameters"
                 ],
                 "successCriteria": [
-                    "Valid starting location",
-                    "Valid travel dates",
-                    "Budget confirmed"
+                    "tripParameters"
                 ]
             },
             {
-                "id": "research_transportation",
-                "name": "Research Transportation Options",
-                "objective": "Explore transportation options across Japan, including costs and schedules.",
-                "rationale": "Essential for optimizing transportation costs and planning.",
+                "id": "destination_research",
+                "name": "Research Destinations",
+                "objective": "Research and suggest destinations in Japan based on the trip parameters.",
+                "rationale": "This task is necessary to provide a list of potential destinations for the trip.",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "init_trip_planning"
+                    "trip_parameters_extraction"
                 ],
                 "expectedInput": [
-                    "starting_location",
-                    "travel_dates"
+                    "tripParameters"
                 ],
                 "expectedOutput": [
-                    "transportation_costs",
-                    "transportation_schedules"
+                    "destinationOptions"
                 ],
                 "successCriteria": [
-                    "Comprehensive list of transportation options",
-                    "Cost estimates"
+                    "destinationOptions"
                 ]
             },
             {
-                "id": "research_accommodations",
-                "name": "Research Accommodation Options",
-                "objective": "Find suitable accommodations within the budget, considering location and amenities.",
-                "rationale": "Critical for staying within budget and ensuring comfort.",
+                "id": "transportation_planning",
+                "name": "Plan Transportation",
+                "objective": "Plan transportation between destinations in Japan.",
+                "rationale": "This task is necessary to provide a transportation plan for the trip.",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "init_trip_planning"
+                    "destination_research"
                 ],
                 "expectedInput": [
-                    "budget",
-                    "travel_dates"
+                    "destinationOptions",
+                    "tripParameters"
                 ],
                 "expectedOutput": [
-                    "accommodation_options",
-                    "accommodation_costs"
+                    "transportationPlan"
                 ],
                 "successCriteria": [
-                    "List of potential accommodations",
-                    "Cost estimates"
+                    "transportationPlan"
                 ]
             },
             {
-                "id": "plan_sightseeing",
-                "name": "Plan Sightseeing Activities",
-                "objective": "Identify key sightseeing spots and activities within Japan, optimizing for time and interest.",
-                "rationale": "Enhances the travel experience and ensures time is used effectively.",
+                "id": "accommodation_planning",
+                "name": "Plan Accommodation",
+                "objective": "Plan accommodation for the trip.",
+                "rationale": "This task is necessary to provide an accommodation plan for the trip.",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "init_trip_planning"
+                    "destination_research"
                 ],
                 "expectedInput": [
-                    "travel_dates",
-                    "interests"
+                    "destinationOptions",
+                    "tripParameters"
                 ],
                 "expectedOutput": [
-                    "sightseeing_itinerary"
+                    "accommodationPlan"
                 ],
                 "successCriteria": [
-                    "Comprehensive sightseeing plan"
+                    "accommodationPlan"
                 ]
             },
             {
-                "id": "plan_food_and_dining",
-                "name": "Plan Food and Dining",
-                "objective": "Research and budget for food and dining experiences across the trip.",
-                "rationale": "Essential for staying within budget and enjoying local cuisine.",
+                "id": "activity_suggestions",
+                "name": "Suggest Activities",
+                "objective": "Suggest activities and sightseeing options for the trip.",
+                "rationale": "This task is necessary to provide activity suggestions for the trip.",
                 "requiredTools": [
                     "web_search_tool"
                 ],
                 "dependencies": [
-                    "init_trip_planning"
+                    "destination_research"
                 ],
                 "expectedInput": [
-                    "budget",
-                    "travel_dates"
+                    "destinationOptions",
+                    "tripParameters"
                 ],
                 "expectedOutput": [
-                    "food_budget_plan"
+                    "activitySuggestions"
                 ],
                 "successCriteria": [
-                    "Food budget plan"
+                    "activitySuggestions"
                 ]
             },
             {
-                "id": "optimize_travel_time",
-                "name": "Optimize Travel Time",
-                "objective": "Ensure efficient travel time between locations, minimizing downtime.",
-                "rationale": "Maximizes the use of time for sightseeing and experiences.",
-                "requiredTools": [
-                    "web_search_tool"
-                ],
-                "dependencies": [
-                    "research_transportation"
-                ],
-                "expectedInput": [
-                    "transportation_schedules",
-                    "sightseeing_itinerary"
-                ],
-                "expectedOutput": [
-                    "optimized_travel_time"
-                ],
-                "successCriteria": [
-                    "Efficient travel time plan"
-                ]
-            },
-            {
-                "id": "finalize_itinerary",
-                "name": "Finalize Day-by-Day Itinerary",
-                "objective": "Compile all gathered information into a detailed day-by-day itinerary.",
-                "rationale": "Provides a clear plan for the trip.",
+                "id": "itinerary_generation",
+                "name": "Generate Itinerary",
+                "objective": "Generate a detailed day-by-day itinerary for the trip.",
+                "rationale": "This task is necessary to provide a comprehensive itinerary for the trip.",
                 "requiredTools": [],
                 "dependencies": [
-                    "research_transportation",
-                    "research_accommodations",
-                    "plan_sightseeing",
-                    "plan_food_and_dining",
-                    "optimize_travel_time"
+                    "transportation_planning",
+                    "accommodation_planning",
+                    "activity_suggestions"
                 ],
                 "expectedInput": [
-                    "transportation_costs",
-                    "accommodation_options",
-                    "sightseeing_itinerary",
-                    "food_budget_plan",
-                    "optimized_travel_time"
+                    "transportationPlan",
+                    "accommodationPlan",
+                    "activitySuggestions",
+                    "tripParameters"
                 ],
                 "expectedOutput": [
-                    "day_by_day_itinerary"
+                    "dayByDayItinerary"
                 ],
                 "successCriteria": [
-                    "Comprehensive and feasible itinerary"
+                    "dayByDayItinerary"
                 ]
             }
         ],
         "edges": [
             {
                 "from": "START",
-                "to": "init_trip_planning",
+                "to": "trip_parameters_extraction",
                 "condition": "ALWAYS"
             },
             {
-                "from": "init_trip_planning",
-                "to": "research_transportation",
+                "from": "trip_parameters_extraction",
+                "to": "destination_research",
                 "condition": "SUCCESS"
             },
             {
-                "from": "init_trip_planning",
-                "to": "research_accommodations",
+                "from": "destination_research",
+                "to": "transportation_planning",
                 "condition": "SUCCESS"
             },
             {
-                "from": "init_trip_planning",
-                "to": "plan_sightseeing",
+                "from": "destination_research",
+                "to": "accommodation_planning",
                 "condition": "SUCCESS"
             },
             {
-                "from": "init_trip_planning",
-                "to": "plan_food_and_dining",
+                "from": "destination_research",
+                "to": "activity_suggestions",
                 "condition": "SUCCESS"
             },
             {
-                "from": "research_transportation",
-                "to": "optimize_travel_time",
+                "from": "transportation_planning",
+                "to": "itinerary_generation",
                 "condition": "SUCCESS"
             },
             {
-                "from": "research_transportation",
-                "to": "finalize_itinerary",
+                "from": "accommodation_planning",
+                "to": "itinerary_generation",
                 "condition": "SUCCESS"
             },
             {
-                "from": "research_accommodations",
-                "to": "finalize_itinerary",
+                "from": "activity_suggestions",
+                "to": "itinerary_generation",
                 "condition": "SUCCESS"
             },
             {
-                "from": "plan_sightseeing",
-                "to": "finalize_itinerary",
-                "condition": "SUCCESS"
-            },
-            {
-                "from": "plan_food_and_dining",
-                "to": "finalize_itinerary",
-                "condition": "SUCCESS"
-            },
-            {
-                "from": "optimize_travel_time",
-                "to": "finalize_itinerary",
-                "condition": "SUCCESS"
-            },
-            {
-                "from": "finalize_itinerary",
+                "from": "itinerary_generation",
                 "to": "END",
                 "condition": "SUCCESS"
             }

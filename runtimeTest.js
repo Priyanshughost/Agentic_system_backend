@@ -1,339 +1,325 @@
-import 'dotenv/config'; // Loads your TAVILY_API_KEY and LLM keys
-import { runtimeExecutor } from './src/ai/runtime/runtimeExecutor.js';
+import "dotenv/config";
+import { runtimeNode } from "./src/ai/nodes/runtime.node.js";
 
-const testBlueprint = {
-    "metadata": {
-        "id": "japan_trip_planning",
-        "version": "1.0.0",
-        "generatedFrom": "Intent Object",
-        "complexity": "HIGH"
-    },
-    "execution": {
-        "entryTask": "init_trip_planning",
-        "allowParallel": true,
-        "allowLoops": false,
-        "maxRetries": 3,
-        "maxTasks": 14
-    },
-    "tasks": [
+const parentGraphState = {
+    userQuery: `Plan a 7 day trip across Japan with a budget of 750000 INR from india and dont ask for any clarifications.`,
+    specifications: [
         {
-            "id": "init_trip_planning",
-            "name": "Initialize Trip Planning",
-            "objective": "Define trip parameters and constraints",
-            "rationale": "Establishes the foundation for the trip planning process",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [],
-            "expectedInput": [],
-            "expectedOutput": [
-                "trip_parameters"
-            ],
-            "successCriteria": [
-                "Trip parameters defined"
-            ]
+            "taskId": "trip_parameters_extraction",
+            "persona": "Travel Planner",
+            "role": "Trip Parameters Extractor",
+            "systemPrompt": "Objective:\nExtract and clarify trip parameters such as travel dates, preferred cities or regions, accommodation preferences, transportation preferences, activity preferences, and meal preferences.\n\nInputs:\n- intent\n\nOutputs:\n- tripParameters\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\n\nReturn ONLY valid JSON.\n\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\n\nEvery required output MUST exist.\n\nDo NOT rename keys.\n\nDo NOT omit keys.\n\nDo NOT wrap outputs inside another object.\n\nDo NOT return markdown.\n\nDo NOT return explanations.\n\nDo NOT return natural language.\n\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "REQUIRED",
+            "maxIterations": 5
         },
         {
-            "id": "define_starting_location",
-            "name": "Define Starting Location",
-            "objective": "Determine the starting location for the trip",
-            "rationale": "Critical for planning transportation and accommodations",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "init_trip_planning"
-            ],
-            "expectedInput": [
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "starting_location"
-            ],
-            "successCriteria": [
-                "Starting location identified"
-            ]
+            "taskId": "destination_research",
+            "persona": "Travel Researcher",
+            "role": "Destination Researcher",
+            "systemPrompt": "Objective:\nResearch and suggest destinations in Japan based on the trip parameters.\n\nInputs:\n- tripParameters\n\nOutputs:\n- destinationOptions\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\n\nReturn ONLY valid JSON.\n\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\n\nEvery required output MUST exist.\n\nDo NOT rename keys.\n\nDo NOT omit keys.\n\nDo NOT wrap outputs inside another object.\n\nDo NOT return markdown.\n\nDo NOT return explanations.\n\nDo NOT return natural language.\n\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "REQUIRED",
+            "maxIterations": 5
         },
         {
-            "id": "plan_transportation",
-            "name": "Plan Transportation",
-            "objective": "Optimize transportation across Japan",
-            "rationale": "Essential for minimizing travel time and costs",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "define_starting_location"
-            ],
-            "expectedInput": [
-                "starting_location",
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "transportation_plan"
-            ],
-            "successCriteria": [
-                "Transportation plan optimized"
-            ]
+            "taskId": "transportation_planning",
+            "persona": "Transportation Planner",
+            "role": "Trip Planner",
+            "systemPrompt": "Objective: Plan transportation between destinations in Japan.\n\nInputs:\n- destinationOptions\n- tripParameters\n\nOutputs:\n- transportationPlan\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\n\nReturn ONLY valid JSON.\n\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\n\nEvery required output MUST exist.\n\nDo NOT rename keys.\n\nDo NOT omit keys.\n\nDo NOT wrap outputs inside another object.\n\nDo NOT return markdown.\n\nDo NOT return explanations.\n\nDo NOT return natural language.\n\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "REQUIRED",
+            "maxIterations": 5
         },
         {
-            "id": "plan_accommodations",
-            "name": "Plan Accommodations",
-            "objective": "Optimize accommodations within budget",
-            "rationale": "Critical for ensuring comfortable stay within budget",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "plan_transportation"
-            ],
-            "expectedInput": [
-                "transportation_plan",
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "accommodation_plan"
-            ],
-            "successCriteria": [
-                "Accommodation plan finalized"
-            ]
+            "taskId": "accommodation_planning",
+            "persona": "Accommodation Planner",
+            "role": "Trip Planner",
+            "systemPrompt": "Objective:\nPlan accommodation for the trip based on the provided destination options and trip parameters.\n\nInputs:\n- destinationOptions\n- tripParameters\n\nOutputs:\n- accommodationPlan\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\nReturn ONLY valid JSON.\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\nEvery required output MUST exist.\nDo NOT rename keys.\nDo NOT omit keys.\nDo NOT wrap outputs inside another object.\nDo NOT return markdown.\nDo NOT return explanations.\nDo NOT return natural language.\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "REQUIRED",
+            "maxIterations": 5
         },
         {
-            "id": "plan_sightseeing",
-            "name": "Plan Sightseeing",
-            "objective": "Plan sightseeing activities within budget and time",
-            "rationale": "Essential for maximizing travel experience",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "plan_accommodations"
-            ],
-            "expectedInput": [
-                "accommodation_plan",
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "sightseeing_plan"
-            ],
-            "successCriteria": [
-                "Sightseeing plan finalized"
-            ]
+            "taskId": "activity_suggestions",
+            "persona": "Travel Planner",
+            "role": "Activity Suggestion Specialist",
+            "systemPrompt": "Objective: Suggest activities and sightseeing options for the trip.\n\nInputs:\n- destinationOptions\n- tripParameters\n\nOutputs:\n- activitySuggestions\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\n\nReturn ONLY valid JSON.\n\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\n\nEvery required output MUST exist.\n\nDo NOT rename keys.\n\nDo NOT omit keys.\n\nDo NOT wrap outputs inside another object.\n\nDo NOT return markdown.\n\nDo NOT return explanations.\n\nDo NOT return natural language.\n\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "REQUIRED",
+            "maxIterations": 5
         },
         {
-            "id": "plan_food",
-            "name": "Plan Food",
-            "objective": "Plan food budget and options",
-            "rationale": "Critical for staying within budget and satisfying culinary needs",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "plan_sightseeing"
-            ],
-            "expectedInput": [
-                "sightseeing_plan",
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "food_plan"
-            ],
-            "successCriteria": [
-                "Food plan finalized"
-            ]
-        },
-        {
-            "id": "finalize_itinerary",
-            "name": "Finalize Day-by-Day Itinerary",
-            "objective": "Compile all plans into a day-by-day itinerary",
-            "rationale": "Essential for providing a clear travel plan",
-            "requiredTools": [
-                "web_search_tool"
-            ],
-            "dependencies": [
-                "plan_food"
-            ],
-            "expectedInput": [
-                "food_plan",
-                "trip_parameters"
-            ],
-            "expectedOutput": [
-                "day_by_day_itinerary"
-            ],
-            "successCriteria": [
-                "Itinerary finalized"
-            ]
+            "taskId": "itinerary_generation",
+            "persona": "Itinerary Planner",
+            "role": "Trip Itinerary Generator",
+            "systemPrompt": "Objective:\nGenerate a detailed day-by-day itinerary for the trip.\n\nInputs:\n- transportationPlan\n- accommodationPlan\n- activitySuggestions\n- tripParameters\n\nOutputs:\n- dayByDayItinerary\n\nRules:\n- Only solve this task.\n- Never solve downstream tasks.\n- Never modify the provided inputs.\n- Use tools only if required.\n- Never fabricate external information.\n- If tools are available, use them whenever they improve factual accuracy.\n- Think step-by-step internally.\n- Return ONLY the requested outputs.\n\nCRITICAL OUTPUT CONTRACT:\n\nReturn ONLY valid JSON.\n\nThe JSON MUST contain EXACTLY the output fields listed in the Outputs section.\n\nEvery required output MUST exist.\n\nDo NOT rename keys.\n\nDo NOT omit keys.\n\nDo NOT wrap outputs inside another object.\n\nDo NOT return markdown.\n\nDo NOT return explanations.\n\nDo NOT return natural language.\n\nReturn ONLY raw JSON.",
+            "model": "gpt120b",
+            "temperature": 0.2,
+            "toolStrategy": "AUTO",
+            "maxIterations": 5
         }
     ],
-    "edges": [
-        {
-            "from": "START",
-            "to": "init_trip_planning",
-            "condition": "ALWAYS"
+    blueprint: {
+        "metadata": {
+            "id": "japan_trip_planning",
+            "version": "1.0",
+            "generatedFrom": "Intent Object",
+            "complexity": "MEDIUM"
         },
-        {
-            "from": "init_trip_planning",
-            "to": "define_starting_location",
-            "condition": "SUCCESS"
+        "execution": {
+            "entryTask": "trip_parameters_extraction",
+            "allowParallel": true,
+            "allowLoops": false,
+            "maxRetries": 3,
+            "maxTasks": 7
         },
-        {
-            "from": "define_starting_location",
-            "to": "plan_transportation",
-            "condition": "SUCCESS"
-        },
-        {
-            "from": "plan_transportation",
-            "to": "plan_accommodations",
-            "condition": "SUCCESS"
-        },
-        {
-            "from": "plan_accommodations",
-            "to": "plan_sightseeing",
-            "condition": "SUCCESS"
-        },
-        {
-            "from": "plan_sightseeing",
-            "to": "plan_food",
-            "condition": "SUCCESS"
-        },
-        {
-            "from": "plan_food",
-            "to": "finalize_itinerary",
-            "condition": "SUCCESS"
-        },
-        {
-            "from": "finalize_itinerary",
-            "to": "END",
-            "condition": "SUCCESS"
+        "tasks": [
+            {
+                "id": "trip_parameters_extraction",
+                "name": "Extract Trip Parameters",
+                "objective": "Extract and clarify trip parameters such as travel dates, preferred cities or regions, accommodation preferences, transportation preferences, activity preferences, and meal preferences.",
+                "rationale": "This task is necessary to gather required information for planning a personalized trip.",
+                "requiredTools": [
+                    "web_search_tool"
+                ],
+                "dependencies": [],
+                "expectedInput": [
+                    "intent"
+                ],
+                "expectedOutput": [
+                    "tripParameters"
+                ],
+                "successCriteria": [
+                    "tripParameters"
+                ]
+            },
+            {
+                "id": "destination_research",
+                "name": "Research Destinations",
+                "objective": "Research and suggest destinations in Japan based on the trip parameters.",
+                "rationale": "This task is necessary to provide a list of potential destinations for the trip.",
+                "requiredTools": [
+                    "web_search_tool"
+                ],
+                "dependencies": [
+                    "trip_parameters_extraction"
+                ],
+                "expectedInput": [
+                    "tripParameters"
+                ],
+                "expectedOutput": [
+                    "destinationOptions"
+                ],
+                "successCriteria": [
+                    "destinationOptions"
+                ]
+            },
+            {
+                "id": "transportation_planning",
+                "name": "Plan Transportation",
+                "objective": "Plan transportation between destinations in Japan.",
+                "rationale": "This task is necessary to provide a transportation plan for the trip.",
+                "requiredTools": [
+                    "web_search_tool"
+                ],
+                "dependencies": [
+                    "destination_research"
+                ],
+                "expectedInput": [
+                    "destinationOptions",
+                    "tripParameters"
+                ],
+                "expectedOutput": [
+                    "transportationPlan"
+                ],
+                "successCriteria": [
+                    "transportationPlan"
+                ]
+            },
+            {
+                "id": "accommodation_planning",
+                "name": "Plan Accommodation",
+                "objective": "Plan accommodation for the trip.",
+                "rationale": "This task is necessary to provide an accommodation plan for the trip.",
+                "requiredTools": [
+                    "web_search_tool"
+                ],
+                "dependencies": [
+                    "destination_research"
+                ],
+                "expectedInput": [
+                    "destinationOptions",
+                    "tripParameters"
+                ],
+                "expectedOutput": [
+                    "accommodationPlan"
+                ],
+                "successCriteria": [
+                    "accommodationPlan"
+                ]
+            },
+            {
+                "id": "activity_suggestions",
+                "name": "Suggest Activities",
+                "objective": "Suggest activities and sightseeing options for the trip.",
+                "rationale": "This task is necessary to provide activity suggestions for the trip.",
+                "requiredTools": [
+                    "web_search_tool"
+                ],
+                "dependencies": [
+                    "destination_research"
+                ],
+                "expectedInput": [
+                    "destinationOptions",
+                    "tripParameters"
+                ],
+                "expectedOutput": [
+                    "activitySuggestions"
+                ],
+                "successCriteria": [
+                    "activitySuggestions"
+                ]
+            },
+            {
+                "id": "itinerary_generation",
+                "name": "Generate Itinerary",
+                "objective": "Generate a detailed day-by-day itinerary for the trip.",
+                "rationale": "This task is necessary to provide a comprehensive itinerary for the trip.",
+                "requiredTools": [],
+                "dependencies": [
+                    "transportation_planning",
+                    "accommodation_planning",
+                    "activity_suggestions"
+                ],
+                "expectedInput": [
+                    "transportationPlan",
+                    "accommodationPlan",
+                    "activitySuggestions",
+                    "tripParameters"
+                ],
+                "expectedOutput": [
+                    "dayByDayItinerary"
+                ],
+                "successCriteria": [
+                    "dayByDayItinerary"
+                ]
+            }
+        ],
+        "edges": [
+            {
+                "from": "START",
+                "to": "trip_parameters_extraction",
+                "condition": "ALWAYS"
+            },
+            {
+                "from": "trip_parameters_extraction",
+                "to": "destination_research",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "destination_research",
+                "to": "transportation_planning",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "destination_research",
+                "to": "accommodation_planning",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "destination_research",
+                "to": "activity_suggestions",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "transportation_planning",
+                "to": "itinerary_generation",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "accommodation_planning",
+                "to": "itinerary_generation",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "activity_suggestions",
+                "to": "itinerary_generation",
+                "condition": "SUCCESS"
+            },
+            {
+                "from": "itinerary_generation",
+                "to": "END",
+                "condition": "SUCCESS"
+            }
+        ]
+    },
+    intent: {
+        goal: 'Plan a 7 day trip across Japan with a budget of 750000 INR from India',
+        problemDomain: ['Travel Planning', 'Tourism'],
+        technologies: [],
+        features: [
+            '7-day itinerary',
+            'budget constraint',
+            'travel from India',
+            'accommodation planning',
+            'transportation planning',
+            'activity suggestions'
+        ],
+        intentCategory: 'PLAN',
+        taskType: 'PLANNING',
+        constraints: ['Budget: 750000 INR', 'Duration: 7 days', 'Origin: India'],
+        inputs: [],
+        expectedOutput: 'Detailed day-by-day itinerary in JSON format',
+        ambiguities: [
+            'Preferred travel dates',
+            'Preferred cities or regions',
+            'Accommodation preferences',
+            'Transportation preferences',
+            'Activity preferences',
+            'Meal preferences',
+            'Currency conversion details'
+        ],
+        requiresClarification: false,
+        complexity: { reasoning: 'MEDIUM', execution: 'MEDIUM', overall: 'MEDIUM' },
+        confidence: {
+            goal: 0.95,
+            technologies: 0.2,
+            constraints: 0.9,
+            expectedOutput: 0.8,
+            taskType: 0.95,
+            overall: 0.9
         }
-    ],
-    "constraints": {
-        "requiresVerification": false,
-        "allowParallel": false,
-        "requiresHumanApproval": false
-    },
-    "successCriteria": [
-        "Day-by-day itinerary delivered in the specified JSON format",
-        "Total estimated cost of the itinerary does not exceed $2500",
-        "All major transportation segments are optimized for minimal travel time",
-        "Accommodation selections stay within the allocated budget portion",
-        "Sightseeing and food plans respect the overall budget and time constraints"
-    ],
-    "finalOutput": {
-        "artifact": "14-day Japan trip itinerary with detailed daily transportation, accommodation, sightseeing, and food budgeting",
-        "format": "JSON document where each day includes fields: date, location, transport, accommodation, activities, food_budget, estimated_cost"
     }
-}
-
-// 2. AGENT SPECIFICATIONS FOR BOTH NODES
-const testSpecifications = [
-    {
-        "taskId": "init_trip_planning",
-        "persona": "Travel Planner",
-        "role": "Define trip parameters and constraints",
-        "systemPrompt": "Your objective is to define trip parameters and constraints. You have access to the web search tool. You must output trip parameters. Stay focused on your objective and avoid unrelated tasks.",
-        "model": "gpt20b",
-        "temperature": 0.2,
-        "toolStrategy": "AUTO",
-        "maxIterations": 10
-    },
-    {
-        "taskId": "define_starting_location",
-        "persona": "Travel Planner",
-        "role": "Determine the starting location for the trip",
-        "systemPrompt": "Objective: Determine the starting location for the trip. Inputs: trip_parameters. Outputs: starting_location. Remain within responsibility and prevent solving unrelated tasks. Avoid assumptions and produce deterministic outputs whenever possible.",
-        "model": "gpt20b",
-        "temperature": 0.3,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 10
-    },
-    {
-        "taskId": "plan_transportation",
-        "persona": "Transportation Planner",
-        "role": "Optimize transportation across Japan",
-        "systemPrompt": "Objective: Optimize transportation across Japan. Inputs: starting_location, trip_parameters. Outputs: transportation_plan. Rules: Remain focused on optimizing transportation, avoid unrelated tasks, and produce deterministic outputs.",
-        "model": "gpt20b",
-        "temperature": 0.2,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 500
-    },
-    {
-        "taskId": "plan_accommodations",
-        "persona": "Senior Travel Planner",
-        "role": "Responsible for optimizing accommodations within budget",
-        "systemPrompt": "Objective: Plan accommodations within budget. Inputs: transportation_plan, trip_parameters. Outputs: accommodation_plan. Remain within responsibility and prevent solving unrelated tasks. Avoid assumptions and produce deterministic outputs whenever possible.",
-        "model": "gpt20b",
-        "temperature": 0.2,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 100
-    },
-    {
-        "taskId": "plan_sightseeing",
-        "persona": "Travel Planner",
-        "role": "Plan sightseeing activities within budget and time",
-        "systemPrompt": "Objective: Plan sightseeing activities within budget and time. Inputs: accommodation_plan, trip_parameters. Outputs: sightseeing_plan. Remain within responsibility, prevent solving unrelated tasks, and produce deterministic outputs whenever possible.",
-        "model": "gpt20b",
-        "temperature": 0.2,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 500
-    },
-    {
-        "taskId": "plan_food",
-        "persona": "Food Budget Planner",
-        "role": "Plan food budget and options",
-        "systemPrompt": "Objective: Plan food budget and options based on sightseeing plan and trip parameters. Inputs: sightseeing_plan, trip_parameters. Outputs: food_plan. Rules: Stay within budget, satisfy culinary needs, and finalize food plan.",
-        "model": "gpt20b",
-        "temperature": 0.2,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 5
-    },
-    {
-        "taskId": "finalize_itinerary",
-        "persona": "Travel Planner",
-        "role": "Compile all plans into a day-by-day itinerary",
-        "systemPrompt": "Objective: Compile all plans into a day-by-day itinerary. Inputs: food_plan, trip_parameters. Outputs: day_by_day_itinerary. Rules: Remain within responsibility, prevent solving unrelated tasks, avoid assumptions, produce deterministic outputs whenever possible.",
-        "model": "gpt20b",
-        "temperature": 0.3,
-        "toolStrategy": "REQUIRED",
-        "maxIterations": 1000
-    }
-];
-
-// 3. INITIAL STATE
-const testInitialState = {
-    variables: {
-        intent: "I want to plan a 14-day cultural and culinary trip to Japan for 2 people with a total budget of $2500.",
-        clarification: "Prefer mid-range boutique hotels or traditional Ryokans. Focus on Tokyo and Kyoto.",
-        available_system_tools: ["web_search_tool"]
-    },
-    // Flat mapping fallback compatibility
-    intent: "I want to plan a 14-day cultural and culinary trip to Japan for 2 people with a total budget of $2500.",
-    clarification: "Prefer mid-range boutique hotels or traditional Ryokans. Focus on Tokyo and Kyoto.",
-    available_system_tools: ["web_search_tool"]
 };
 
-// 4. RUNNER
-async function runMultiAgentTest() {
+async function runRuntimeNodeTest() {
     try {
-        console.log("🚀 Launching Multi-Agent 2-Task Flow Test...");
+        console.log("🚀 Launching Runtime Node Test...");
 
-        const finalState = await runtimeExecutor({
-            blueprint: testBlueprint,
-            specifications: testSpecifications,
-            initialState: testInitialState
-        });
+        const result = await runtimeNode(parentGraphState);
 
         console.log("\n========================================");
-        console.log("🎉 Multi-Stage Pipeline Test Successful!");
+        console.log("🎉 Runtime Node Finished");
         console.log("========================================");
-        console.log("Final Consolidated Graph State Variables:");
-        console.log(JSON.stringify(finalState.variables || finalState, null, 2));
+
+        console.dir(result.finalOutput, {
+            depth: null
+        });
 
     } catch (error) {
-        console.error("\n❌ Pipeline Flow Broken:");
-        console.error(error.message);
-        if (error.stack) console.error(error.stack);
+        console.error("\n❌ Runtime Node Failed");
+        console.error(error);
+
+        if (error.stack) {
+            console.error(error.stack);
+        }
     }
 }
 
-runMultiAgentTest();
+runRuntimeNodeTest();
