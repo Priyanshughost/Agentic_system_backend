@@ -52,6 +52,15 @@ export const parseRuntimeOutput = ({
 
     if (!match) {
 
+        // Fallback: if there is exactly ONE expected output, we can safely assume 
+        // the LLM just returned the raw content instead of wrapping it in JSON.
+        if (task.expectedOutput && task.expectedOutput.length === 1) {
+            const key = task.expectedOutput[0];
+            return {
+                [key]: content
+            };
+        }
+
         throw new Error(
             `Task "${task.id}" did not return valid JSON.`
         );

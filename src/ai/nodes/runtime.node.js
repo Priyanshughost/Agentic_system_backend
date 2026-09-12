@@ -1,10 +1,9 @@
 import e from "express";
 import { runtimeExecutor } from "../runtime/runtimeExecutor.js";
+import { logger } from "../../utils/logger.js";
 
-export const runtimeNode = async (state) => {
-    console.log("\n[Runtime Node] Initiating dynamic graph execution...\n");
-    console.dir(state, { depth: null })
-    console.log("\n\n")
+export const runtimeNode = async (state, config) => {
+    logger.info("[Runtime Node] Initiating dynamic graph execution...");
 
     // 1. Extract the generated artifacts from your parent graph's state
     const { blueprint, specifications, intent, userQuery } = state;
@@ -14,6 +13,7 @@ export const runtimeNode = async (state) => {
     const initialRuntimeState = {
         variables: {
             intent: intent,
+            constraints: state.constraints,
             raw_query: userQuery // Passing the raw string is highly recommended
         }
     };

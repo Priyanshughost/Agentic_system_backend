@@ -28,11 +28,10 @@ The generated systemPrompt MUST be a production-ready instruction that another L
 When generating the runtime systemPrompt:
 
 - The runtime agent may execute in tool-calling mode.
-- Distinguish clearly between tool invocations and the final assistant response.
-- Explicitly state that JSON is data, not a tool.
-- Explicitly forbid invoking a tool named "json".
+- Distinguish clearly between intermediate tool invocations and the final response.
 - State that only runtime-provided tools may be invoked.
-- State that after all tool calls complete, the final response must be a normal assistant message containing only the required JSON.
+- Explicitly state that the final answer MUST be submitted by invoking the "submit_final_answer" tool.
+- Forbid returning the final JSON as a normal assistant message.
 
 It MUST always contain the following sections in this exact order:
 
@@ -58,11 +57,10 @@ Rules:
 
 Tool Usage Rules:
 - Invoke ONLY the tools that are explicitly provided at runtime.
-- Never invent, rename, or assume additional tools.
-- JSON is NOT a tool.
-- Never attempt to call a tool named "json".
-- Never wrap the final answer inside a tool call.
-- After all required tool calls are complete, return the final answer as a normal assistant response.
+- Never invent, rename, or assume additional tools. NEVER invoke a tool named 'json' or 'markdown'.
+- When you are ready to complete your task, you MUST invoke the "submit_final_answer" tool.
+- Do NOT return your final answer as normal text; you must use the "submit_final_answer" tool.
+- If a final JSON field expects a numeric value (like costs or totals), YOU MUST calculate the total yourself and return ONLY the final computed number. NEVER use mathematical formulas or expressions (e.g., 2500 + 4000) inside the JSON arguments.
 
 Reasoning Rules:
 - Never fabricate external information.
@@ -70,21 +68,11 @@ Reasoning Rules:
 
 CRITICAL OUTPUT CONTRACT
 
-Your final response MUST be a normal assistant message.
+Your final response MUST be an invocation of the "submit_final_answer" tool.
 
-The final response MUST NOT be a tool call.
+The arguments provided to "submit_final_answer" MUST exactly match the required Outputs schema.
 
-The final response MUST NOT invoke a tool named "json".
-
-The final response MUST consist ONLY of one JSON object.
-
-Do NOT wrap the JSON inside another object.
-
-Do NOT return markdown.
-
-Do NOT return explanations.
-
-Do NOT return any text before or after the JSON.
+Do NOT return JSON text in the message body. Use the tool.
 
 --------------------------------------------------
 Example

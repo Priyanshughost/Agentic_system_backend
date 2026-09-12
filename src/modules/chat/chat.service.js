@@ -1,29 +1,22 @@
-import { chatGraph } from "../../ai/graphs/chat.graph.js";
+import { testGraph } from "../../ai/graphs/test.graph.js";
 
 export const generateResponse = async (
-        message,
-        userId,
-        conversationId
-    ) => {
-    const formattedMessage = typeof message === "string"
-        ? { role: "user", content: message }
-        : message;
-    // const currentState = await chatGraph.getState({ configurable: { thread_id: "1" } });
-    // console.log("--- CHECKPOINTER MEMORY ---");
-    // console.dir(currentState, { depth: null });
-    // console.log("---------------------------");
+    message,
+    userId,
+    conversationId
+) => {
+    // Note: The new testGraph accepts the initialState in the form of { userQuery: "..." }
+    const formattedMessage = typeof message === "string" ? message : message.content;
 
-
-    return chatGraph.stream(
+    return testGraph.streamEvents(
         {
-            messages: [formattedMessage],
+            userQuery: formattedMessage,
         },
         {
             configurable: {
-            thread_id: `${userId}:${conversationId.toString()}`,
+                thread_id: `${userId}:${conversationId.toString()}`,
             },
-            
-            streamMode: ["messages", "updates"]
+            version: "v2"
         }
     );
 };

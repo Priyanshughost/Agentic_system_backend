@@ -7,6 +7,9 @@ import { ToolMessage } from "@langchain/core/messages";
 import { processToolResult } from "./processToolResult.js";
 import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 import { extractHallucinatedJsonTool } from "../../utils/extractHallucinatedJsonTool.js";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+import { logger } from "../../utils/logger.js";
 
 export const createRuntimeAgent = ({
     task,
@@ -15,12 +18,9 @@ export const createRuntimeAgent = ({
 }) => {
 
     return async (state) => {
-        // console.log("\nInside the runtime agent node\n printing state\n")
-        // console.dir(state, { depth: null })
-        // console.log("\n\n")
-        console.log("====================================");
-        console.log(`🤖 ${task.name}`);
-        console.log("====================================");
+        logger.info("====================================");
+        logger.info(`🤖 ${task.name}`);
+        logger.info("====================================");
 
         // ---------------------------------
         // Resolve Inputs
@@ -39,8 +39,27 @@ export const createRuntimeAgent = ({
             inputs
         });
 
+        const submitFinalAnswerSchema = z.object(
+            Object.fromEntries(
+                task.expectedOutput.map(key => [key, z.any().describe(`The final generated data for ${key}`)])
+            )
+        );
+
+        const submitFinalAnswerTool = tool(
+            async (args) => {
+                return "Final answer submitted.";
+            },
+            {
+                name: "submit_final_answer",
+                description: "MUST be called to submit your final answer once you have completed all tasks.",
+                schema: submitFinalAnswerSchema
+            }
+        );
+
+        const agentTools = [...tools, submitFinalAnswerTool];
+
         const toolMap = new Map(
-            tools.map(tool => [tool.name, tool])
+            agentTools.map(t => [t.name, t])
         );
 
         // ---------------------------------
@@ -57,26 +76,29 @@ export const createRuntimeAgent = ({
         // ---------------------------------
         let llm;
 
+        let llmTools;
+
         if (
             specification.toolStrategy === "NONE"
         ) {
-
-            llm = model;
-
+            llmTools = [submitFinalAnswerTool];
         } else {
-
-            llm = model.bindTools(tools);
-
+            llmTools = agentTools;
         }
+
+        llm = model.bindTools(llmTools);
+
         let conversation = [...messages];
         let toolCalls = 0;
         const toolCache = new Map();
 
         let iteration = 1; // Used just for logging now
+        let parseFailures = 0;
+        const MAX_PARSE_FAILURES = 3;
 
         // Removed the maxIterations bound. It will loop until it decides it is finished.
         while (true) {
-            console.log(`\n  [Iteration ${iteration}] 🧠 Invoking LLM... (Context length: ${conversation.length} messages)`);
+            logger.info(`  [Iteration ${iteration}] 🧠 Invoking LLM... (Context length: ${conversation.length} messages)`);
             let response
             try {
 
@@ -93,7 +115,7 @@ export const createRuntimeAgent = ({
                     throw error;
                 }
 
-                console.log("⚠️ Recovered hallucinated JSON tool.");
+                logger.warn("⚠️ Recovered hallucinated JSON tool.");
 
                 response = JSON.stringify(recovered)
             }
@@ -102,37 +124,62 @@ export const createRuntimeAgent = ({
 
             // ---------------------------------
             // EXIT CONDITION: No valid tools requested
-
+            // ---------------------------------
             if (!response.tool_calls?.length) {
-                console.log(`  [Iteration ${iteration}] 🏁 LLM finished thinking. Parsing final output...`);
+                logger.info(`  [Iteration ${iteration}] 🏁 LLM finished thinking. Parsing final output...`);
 
-                console.log(`\n===================\n${JSON.stringify(response, null, 2)}\n===================\n`);
+                try {
+                    const output = parseRuntimeOutput({
+                        task,
+                        response
+                    });
 
-                const output = parseRuntimeOutput({
-                    task,
-                    response
-                });
+                    return mergeOutputs({
+                        task,
+                        state,
+                        output
+                    });
+                } catch (error) {
+                    parseFailures++;
+                    if (parseFailures >= MAX_PARSE_FAILURES) {
+                        logger.error(`❌ Max parse failures reached. Task "${task.id}" failed permanently.`);
+                        throw error;
+                    }
 
-                return mergeOutputs({
-                    task,
-                    state,
-                    output
-                });
+                    logger.warn(`  [Iteration ${iteration}] ⚠️ Failed to parse output: ${error.message}. Asking LLM to correct...`);
+                    
+                    conversation.push({
+                        role: "user",
+                        content: `CRITICAL ERROR: Your last response was invalid. You must output ONLY valid JSON matching the exact schema. Do not include markdown formatting like \`\`\`json. Error details: ${error.message}`
+                    });
+
+                    iteration++;
+                    continue;
+                }
             }
 
             // ---------------------------------
             // TOOL EXECUTION
             // ---------------------------------
             for (const toolCall of response.tool_calls) {
-                console.log(`    -> 🔍 Executing: ${toolCall.name}`);
-                console.log(`    -> 📝 Arguments: ${JSON.stringify(toolCall.args)}`);
+                logger.info(`    -> 🔍 Executing: ${toolCall.name}`);
+
+                // --- SUBMIT FINAL ANSWER HANDLER ---
+                if (toolCall.name === "submit_final_answer") {
+                    logger.info(`    -> 🏁 LLM submitted final answer via tool. Resolving task...`);
+                    return mergeOutputs({
+                        task,
+                        state,
+                        output: toolCall.args
+                    });
+                }
                 const cacheKey = `${toolCall.name}:${JSON.stringify(toolCall.args)}`;
 
                 // ---------------------------------
                 // Duplicate Tool Detection
                 // ---------------------------------
                 if (toolCache.has(cacheKey)) {
-                    console.log("    -> ♻️ Using cached tool result.");
+                    logger.info("    -> ♻️ Using cached tool result.");
                     conversation.push(toolCache.get(cacheKey));
                     continue;
                 }
@@ -153,15 +200,11 @@ export const createRuntimeAgent = ({
                 toolCache.set(cacheKey, toolMessage);
                 toolCalls++;
 
-                console.log("\ntool message\n");
-                console.dir(toolMessage, { depth: null });
-                console.log("\n");
-
                 const dataLength = typeof toolMessage.content === "string"
                     ? toolMessage.content.length
                     : JSON.stringify(toolMessage.content).length;
 
-                console.log(`    -> ✅ Tool retrieved ${dataLength} characters of data.\n`);
+                logger.info(`    -> ✅ Tool retrieved ${dataLength} characters of data.`);
 
                 conversation.push(toolMessage);
             }

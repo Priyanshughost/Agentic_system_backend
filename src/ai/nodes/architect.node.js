@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { plannerPrompt, routerPrompt } from "../prompts/architect.prompt.js";
-import { llama17b } from "../models/llama-17b.js"
-import { gpt120b } from "../models/gpt-120b.js"
 import { AVAILABLE_TOOL_NAMES, TOOL_CATALOG } from "../tools/catalog.js";
+import { gpt20b } from "../models/gpt-20b.js";
+import { gpt120b } from "../models/gpt-120b.js";
+import { logger } from "../../utils/logger.js";
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 // ==========================================
 // 1. YOUR EXACT SCHEMAS (With the Empty Array Fix)
@@ -32,8 +34,8 @@ const ExecutionSchema = z.object({
 
 const TaskSchema = z.object({
 
-    id: z.string().describe("The unique semantic name of the agent/task in snake_case (e.g., 'auth_system_designer', 'mongodb_schema_generator'). This acts as the key for your graph edges."),
-    name: z.string().describe("Human-readable formal name of the agent/task role."),
+    id: z.string().describe("The unique semantic name of the agent in snake_case. IMPORTANT: Always name tasks as Professional Agent Roles (e.g. 'research_specialist', 'code_architect'), NOT verbs (e.g. do NOT use 'generate_code' or 'do_research'). This acts as the key for your graph edges."),
+    name: z.string().describe("Human-readable formal name of the agent's role (e.g. 'Research Specialist', 'Itinerary Generator'). DO NOT use verbs."),
     objective: z.string().describe("Strict, clear instruction of WHAT this agent must achieve, omitting technical runtime implementation details."),
     rationale: z.string().describe("Architectural justification detailing why this task is critical to the top-level goal."),
     requiredTools: z.array(z.enum(AVAILABLE_TOOL_NAMES.length > 0 ? AVAILABLE_TOOL_NAMES : ["NONE"])).describe("The exact, literal names of the system tools this agent requires to execute its objective. Must be selected ONLY from the provided system menu."),
@@ -89,18 +91,15 @@ const RouterSchema = z.object({
 // ==========================================
 // 3. THE NODE EXECUTION
 // ==========================================
-const plannerModel = llama17b.withStructuredOutput(PlannerSchema, { name: "generate_tasks" });
+const plannerModel = gpt20b.withStructuredOutput(PlannerSchema, { name: "generate_tasks" });
 const routerModel = gpt120b.withStructuredOutput(RouterSchema, { name: "generate_routes" });
 
 
-export const architectNode = async (state) => {
-    console.log("\nInside the architect node\n printing state\n")
-    console.dir(state, { depth: null })
-    console.log("\n\n")
+export const architectNode = async (state, config) => {
 
-    console.log("📐 Meta-Architect [Part 1]: Generating tasks...");
+    logger.info("📐 Meta-Architect [Part 1]: Generating tasks...");
 
-    const plannerResult = await plannerModel.invoke([
+    const plannerResult = await retryWithRateLimit(() => plannerModel.invoke([
         {
             role: "system",
             content: plannerPrompt
@@ -113,11 +112,11 @@ export const architectNode = async (state) => {
                 available_system_tools: TOOL_CATALOG
             }, null, 2)
         }
-    ]);
+    ]));
 
-    console.log("🔗 Meta-Architect [Part 2]: Routing edges...");
+    logger.info("🔗 Meta-Architect [Part 2]: Routing edges...");
 
-    const routerResult = await routerModel.invoke([
+    const routerResult = await retryWithRateLimit(() => routerModel.invoke([
         {
             role: "system",
             content: routerPrompt
@@ -129,7 +128,7 @@ export const architectNode = async (state) => {
                 tasks_generated_in_phase_1: plannerResult.tasks
             }, null, 2)
         }
-    ]);
+    ]));
 
     // Merge the two halves back into the single Blueprint structure!
     const blueprint = {

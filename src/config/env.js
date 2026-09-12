@@ -8,5 +8,6 @@ export const env = {
     MONGO_URI: process.env.MONGO_URI,
     CLIENT_URL: process.env.CLIENT_URL,
     NODE_ENV: process.env.NODE_ENV,
-    TAVILY_API_KEY: process.env.TAVILY_API_KEY
+    TAVILY_API_KEY: process.env.TAVILY_API_KEY,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY
 };

@@ -1,6 +1,7 @@
 import { gpt120b } from "../models/gpt-120b.js";
 import { clarificationPrompt } from "../prompts/clarification.prompt.js";
 import { z } from "zod";
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 const ClarificationSchema = z.object({
     requiresClarification: z.boolean(),
@@ -24,7 +25,7 @@ export const clarificationNode =
     async (state) => {
 
         const clarification =
-            await structuredModel.invoke([
+            await retryWithRateLimit(() => structuredModel.invoke([
                 {
                     role: "system",
                     content: clarificationPrompt
@@ -37,7 +38,7 @@ export const clarificationNode =
                         2
                     )
                 }
-            ]);
+            ]));
 
         return {
             clarification

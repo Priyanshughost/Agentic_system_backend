@@ -1,6 +1,6 @@
 export const extractHallucinatedJsonTool = (error) => {
     const failedGeneration =
-        error?.error?.error?.failed_generation;
+        error?.error?.failed_generation || error?.failed_generation;
 
     if (!failedGeneration) {
         return null;

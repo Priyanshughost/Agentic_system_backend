@@ -37,36 +37,49 @@ export const compileRuntimeGraph = ({
             ])
         );
     // ----------------------------------------------------
+    // Reachability Analysis (Bulletproofing against LLM hallucinations)
+    // ----------------------------------------------------
+    
+    const reachableNodes = new Set(["START"]);
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const edge of blueprint.edges) {
+            if (reachableNodes.has(edge.from) && !reachableNodes.has(edge.to)) {
+                reachableNodes.add(edge.to);
+                changed = true;
+            }
+        }
+    }
+
+    // ----------------------------------------------------
     // Create Runtime Nodes
     // ----------------------------------------------------
 
     for (const task of blueprint.tasks) {
+        // Skip adding the node if the LLM forgot to route it from START
+        if (!reachableNodes.has(task.id)) {
+            console.warn(`[Graph Compiler] Skipping unreachable task: ${task.id}`);
+            continue;
+        }
 
         const specification =
             specificationMap.get(task.id);
 
         const tools = task.requiredTools.map(name => {
-
             const tool = TOOL_REGISTRY[name];
-
             if (!tool) {
-
                 throw new Error(
                     `Unknown runtime tool "${name}".`
                 );
-
             }
-
             return tool;
-
         });
 
         if (!specification) {
-
             throw new Error(
                 `Missing specification for task "${task.id}".`
             );
-
         }
 
         workflow.addNode(
@@ -77,7 +90,6 @@ export const compileRuntimeGraph = ({
                 tools
             })
         );
-
     }
 
     // ----------------------------------------------------
@@ -85,6 +97,11 @@ export const compileRuntimeGraph = ({
     // ----------------------------------------------------
 
     for (const edge of blueprint.edges) {
+        // Only add edges that originate from a reachable node
+        // and target a node that actually exists (or END)
+        if (!reachableNodes.has(edge.from) || !reachableNodes.has(edge.to)) {
+            continue;
+        }
 
         const from =
             edge.from === "START"
@@ -103,7 +120,6 @@ export const compileRuntimeGraph = ({
             from,
             to
         );
-
     }
 
     return workflow.compile();

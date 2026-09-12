@@ -1,4 +1,5 @@
 import { compileRuntimeGraph } from "../compiler/compileRuntimeGraph.js";
+import { logger } from "../../utils/logger.js";
 
 export const runtimeExecutor = async ({
     blueprint,
@@ -14,10 +15,9 @@ export const runtimeExecutor = async ({
         throw new Error("Agent specifications are required.");
     }
 
-    console.log("");
-    console.log("========================================");
-    console.log("🚀 Runtime Graph Compilation");
-    console.log("========================================");
+    logger.info("========================================");
+    logger.info("🚀 Runtime Graph Compilation");
+    logger.info("========================================");
 
     const runtimeGraph =
         compileRuntimeGraph({
@@ -25,21 +25,17 @@ export const runtimeExecutor = async ({
             specifications
         });
 
-    console.log("✅ Runtime graph compiled.");
+    logger.info("✅ Runtime graph compiled.");
 
-    console.log("");
-    console.log("========================================");
-    console.log("🚀 Runtime Graph Execution");
-    console.log("========================================");
+    logger.info("========================================");
+    logger.info("🚀 Runtime Graph Execution");
+    logger.info("========================================");
 
     const finalState =
         await runtimeGraph.invoke(initialState);
 
-    console.log("");
-
-    console.log("========================================");
-    console.log("✅ Runtime Execution Finished");
-    console.log(`====================\n${finalState}\n====================`);
+    logger.info("========================================");
+    logger.info("✅ Runtime Execution Finished");
 
     return finalState;
 

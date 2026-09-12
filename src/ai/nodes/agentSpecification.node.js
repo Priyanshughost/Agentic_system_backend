@@ -1,11 +1,9 @@
 import { z } from "zod";
 import { agentSpecificationPrompt } from "../prompts/agentSpecification.prompt.js";
 import { gpt120b } from "../models/gpt-120b.js";
-import { llama22m } from "../models/llama-22m.js";
-import { llama86m } from "../models/llama-86m.js";
-import { llama17b } from "../models/llama-17b.js";
-import { qwen27b } from "../models/qwen27b.js";
 import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
+import { gptSafeguard } from "../models/gpt-safeguard.js";
+import { logger } from "../../utils/logger.js";
 
 const AgentSpecificationSchema = z.object({
     taskId: z.string().describe("Must exactly match the 'id' of the task from the blueprint."),
@@ -28,25 +26,20 @@ const AgentSpecificationSchema = z.object({
 });
 
 const structuredModel =
-    llama17b.withStructuredOutput(
+    gptSafeguard.withStructuredOutput(
         AgentSpecificationSchema,
         { name: "generate_agent_specification" }
     );
 
-export const agentSpecificationNode = async (state) => {
-    console.log("\nInside the agent specification node\n printing state\n")
-    console.dir(state, { depth: null })
-    console.log("\n\n")
+export const agentSpecificationNode = async (state, config) => {
 
-    console.log(
-        "🧬 Agent Specification Generator is creating runtime agent specifications..."
-    );
+    logger.info("🧬 Agent Specification Generator is creating runtime agent specifications...");
 
     const specifications = [];
 
     for (const task of state.blueprint.tasks) {
 
-        console.log(
+        logger.info(
             `🧬 Generating specification for: ${task.name}`
         );
 
@@ -73,7 +66,11 @@ export const agentSpecificationNode = async (state) => {
             ])
         );
         // console.dir(specification, {depth: null})
-        specifications.push(specification);
+        specifications.push({
+            ...specification,
+            requiredTools: task.requiredTools || [],
+            taskId: task.id // Ensure frontend can map it to the activeNode ID
+        });
 
     }
 

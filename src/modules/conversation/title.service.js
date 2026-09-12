@@ -1,5 +1,6 @@
-import { llama8b } from "../../ai/models/llama-8b.js";
+import { allam } from "../../ai/models/allam-2-7b.js";
 import Conversation from "./conversation.model.js";
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 export const generateConversationTitle =
     async ({
@@ -30,7 +31,7 @@ export const generateConversationTitle =
                 `;
 
         const response =
-            await llama8b.invoke(prompt);
+            await retryWithRateLimit(() => allam.invoke(prompt));
 
         const title =
             response.content

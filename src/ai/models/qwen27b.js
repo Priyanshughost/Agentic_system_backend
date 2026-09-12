@@ -2,7 +2,7 @@ import { ChatGroq } from "@langchain/groq"
 import { env } from "../../config/env.js"
 
 export const qwen27b = new ChatGroq({
-    model: "qwen/qwen3.6-27b",
+    model: "qwen/qwen3.8-27b",
     temperature: 0,
     apiKey: env.GROQ_API_KEY
 })

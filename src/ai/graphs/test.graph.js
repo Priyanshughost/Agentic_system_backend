@@ -9,6 +9,7 @@ import { architectNode } from "../nodes/architect.node.js";
 import { agentSpecificationNode } from "../nodes/agentSpecification.node.js";
 import { globalState } from "../state/globalState.js";
 import { runtimeNode } from "../nodes/runtime.node.js";
+import { responseGeneratorNode } from "../nodes/responseGenerator.node.js";
 
 const workflow =
     new StateGraph(globalState);
@@ -33,6 +34,11 @@ workflow.addNode(
     agentSpecificationNode
 );
 
+workflow.addNode(
+    "responseGenerator",
+    responseGeneratorNode
+);
+
 workflow.addEdge(
     START,
     "intentAnalyzer"
@@ -55,6 +61,11 @@ workflow.addEdge(
 
 workflow.addEdge(
     "runtimeExecution",
+    "responseGenerator"
+);
+
+workflow.addEdge(
+    "responseGenerator",
     END
 );
 

@@ -35,6 +35,11 @@ export const globalState = Annotation.Root({
     finalOutput: Annotation({
         reducer: (_, value) => value,
         default: () => []
+    }),
+
+    finalMarkdown: Annotation({
+        reducer: (_, value) => value,
+        default: () => null
     })
 
 });

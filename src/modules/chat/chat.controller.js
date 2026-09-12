@@ -33,35 +33,98 @@ export const sendMessage = async (req, res) => {
             actualConversationId
         );
 
-        // NEW: LangGraph now yields [mode, payload] because we requested multiple modes
-        for await (const [mode, payload] of response) {
+        // NEW: We are iterating over an async event stream (v2 streamEvents)
+        let activeNode = null;
 
-            // 1. Handle actual token generation
-            if (mode === "messages") {
-                const [chunk, metadata] = payload;
-                if (!chunk?.content) continue;
+        for await (const event of response) {
 
-                assistantResponse += chunk.content;
+            // Track active graph node to filter out internal orchestration tokens
+            if (event.event === "on_chain_start") {
+                if (
+                    event.name &&
+                    !event.name.startsWith("LangGraph") &&
+                    !event.name.startsWith("__") &&
+                    !event.name.includes("ChatGroq") &&
+                    !event.name.includes("Runnable")
+                ) {
+                    activeNode = event.name;
 
-                res.write(
-                    `data: ${JSON.stringify({
-                        type: "content", // Flag as content
-                        role: "assistant",
-                        content: chunk.content,
-                    })}\n\n`
-                );
-            }
-            // 2. Handle graph node transitions / tools
-            else if (mode === "updates") {
-                // payload is an object where the key is the active node name
-                const activeNode = Object.keys(payload)[0];
-                console.log(activeNode)
-                // Ignore the generic end node
-                if (activeNode && activeNode !== "__end__") {
+                    // Convert camelCase or snake_case to Title Case words
+                    const formattedNodeName = activeNode
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/_/g, ' ')
+                        .replace(/^./, str => str.toUpperCase())
+                        .trim();
+
+                    const coreNodes = ["intentAnalyzer", "metaArchitect", "agentSpecificationGenerator", "runtimeExecution", "responseGenerator"];
+                    
+                    let statusMsg;
+                    if (coreNodes.includes(activeNode)) {
+                        statusMsg = `Processing ${formattedNodeName}...`;
+                    } else {
+                        statusMsg = `Agent Name: "${formattedNodeName}"`;
+                    }
+
                     res.write(
                         `data: ${JSON.stringify({
                             type: "status", // Flag as status
-                            status: `Processing ${activeNode}...`,
+                            status: statusMsg,
+                        })}\n\n`
+                    );
+                }
+            }
+
+            // 1. Handle actual token generation ONLY for the final Markdown Response Generator
+            const coreNodes = ["intentAnalyzer", "metaArchitect", "agentSpecificationGenerator", "runtimeExecution", "responseGenerator"];
+            
+            if (event.event === "on_chat_model_stream") {
+                if (activeNode === "responseGenerator") {
+                    const chunk = event.data?.chunk?.content;
+
+                    if (chunk) {
+                        assistantResponse += chunk;
+                        res.write(
+                            `data: ${JSON.stringify({
+                                type: "content", // Flag as content
+                                role: "assistant",
+                                content: chunk,
+                            })}\n\n`
+                        );
+                    }
+                } else if (activeNode && !coreNodes.includes(activeNode)) {
+                    // It's a runtime agent, stream its thought/reasoning
+                    const chunk = event.data?.chunk?.content;
+                    if (chunk) {
+                        res.write(
+                            `data: ${JSON.stringify({
+                                type: "agent_thought",
+                                agentId: activeNode,
+                                content: chunk,
+                            })}\n\n`
+                        );
+                    }
+                }
+            }
+
+            // 1.5 Intercept Tool Executions
+            if (event.event === "on_tool_start" && activeNode && !coreNodes.includes(activeNode)) {
+                res.write(
+                    `data: ${JSON.stringify({
+                        type: "agent_action",
+                        agentId: activeNode,
+                        action: `Triggering ${event.name}...`
+                    })}\n\n`
+                );
+            }
+
+            // 2. NEW: Intercept agent specifications and emit them
+            if (event.event === "on_chain_end" && event.name === "agentSpecificationGenerator") {
+                const specifications = event.data?.output?.specifications || event.data?.output?.agentSpecificationGenerator?.specifications;
+                if (specifications && Array.isArray(specifications)) {
+                    res.write(
+                        `data: ${JSON.stringify({
+                            type: "agents",
+                            agents: specifications
                         })}\n\n`
                     );
                 }

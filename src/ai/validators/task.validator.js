@@ -110,7 +110,7 @@ export const validateTasks = (tasks) => {
         /* ---------- Arrays ---------- */
 
         const arrayFields = [
-            "capabilities",
+            "requiredTools",
             "dependencies",
             "expectedInput",
             "expectedOutput",

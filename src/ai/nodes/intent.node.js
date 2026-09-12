@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { intentPrompt } from "../prompts/intent.prompt.js";
 import { gpt20b } from "../models/gpt-20b.js";
+import { logger } from "../../utils/logger.js";
+import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
 const IntentSchema = z.object({
     goal: z.string().describe("A concise, imperative summary of the core objective."),
@@ -84,22 +86,22 @@ const IntentSchema = z.object({
         constraints: z.number().min(0).max(1),
         expectedOutput: z.number().min(0).max(1),
         taskType: z.number().min(0).max(1),
-        overall: z.number().min(0).max(1)
-    }).catchall(z.number())
-        .describe(
-            "Confidence scores for the extracted intent fields. You may dynamically add additional keys if needed, as long as the value is a number between 0.0 and 1.0."
-        )
+        overall: z.number().min(0).max(1),
+        problemDomain: z.number().min(0).max(1),
+        features: z.number().min(0).max(1),
+        intentCategory: z.number().min(0).max(1)
+    }).describe(
+        "Confidence scores for the extracted intent fields. Provide scores between 0.0 and 1.0 for these specific fields."
+    )
 })
 
 const structuredModel =
     gpt20b.withStructuredOutput(IntentSchema);
 
 export const intentNode = async (state) => {
-    console.log("\nInside the intent node\n printing state\n")
-    console.dir(state, { depth: null })
-    console.log("\n\n")
-    const intent =
-        await structuredModel.invoke([
+
+    const intent = await retryWithRateLimit(() =>
+        structuredModel.invoke([
             {
                 role: "system",
                 content: intentPrompt
@@ -108,7 +110,8 @@ export const intentNode = async (state) => {
                 role: "user",
                 content: state.userQuery
             }
-        ]);
+        ])
+    );
 
     return {
         intent,
