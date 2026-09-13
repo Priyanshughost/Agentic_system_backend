@@ -1,4 +1,4 @@
-import { intentNode } from "./src/ai/nodes/intent.node.js";
+import { intentNode } from "../src/ai/nodes/intent.node.js";
 const state = {
     userQuery: `
 Plan a 7 day trip across Japan with a budget of 750000 INR from india and dont ask for any clarifications.

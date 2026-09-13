@@ -37,49 +37,22 @@ export const compileRuntimeGraph = ({
             ])
         );
     // ----------------------------------------------------
-    // Reachability Analysis (Bulletproofing against LLM hallucinations)
-    // ----------------------------------------------------
-    
-    const reachableNodes = new Set(["START"]);
-    let changed = true;
-    while (changed) {
-        changed = false;
-        for (const edge of blueprint.edges) {
-            if (reachableNodes.has(edge.from) && !reachableNodes.has(edge.to)) {
-                reachableNodes.add(edge.to);
-                changed = true;
-            }
-        }
-    }
-
-    // ----------------------------------------------------
     // Create Runtime Nodes
     // ----------------------------------------------------
 
     for (const task of blueprint.tasks) {
-        // Skip adding the node if the LLM forgot to route it from START
-        if (!reachableNodes.has(task.id)) {
-            console.warn(`[Graph Compiler] Skipping unreachable task: ${task.id}`);
-            continue;
-        }
-
-        const specification =
-            specificationMap.get(task.id);
+        const specification = specificationMap.get(task.id);
 
         const tools = task.requiredTools.map(name => {
             const tool = TOOL_REGISTRY[name];
             if (!tool) {
-                throw new Error(
-                    `Unknown runtime tool "${name}".`
-                );
+                throw new Error(`Unknown runtime tool "${name}".`);
             }
             return tool;
         });
 
         if (!specification) {
-            throw new Error(
-                `Missing specification for task "${task.id}".`
-            );
+            throw new Error(`Missing specification for task "${task.id}".`);
         }
 
         workflow.addNode(
@@ -93,33 +66,54 @@ export const compileRuntimeGraph = ({
     }
 
     // ----------------------------------------------------
-    // Create Runtime Edges
+    // Topological Sort for Linear Execution
+    // ----------------------------------------------------
+    // We enforce a strictly linear DAG to completely avoid
+    // LangGraph's fan-in multi-execution bugs and missing dependency errors.
+    
+    const sortedTasks = [];
+    const visited = new Set();
+    const visiting = new Set();
+    
+    function visit(taskId) {
+        if (visited.has(taskId)) return;
+        if (visiting.has(taskId)) {
+            console.warn(`[Graph Compiler] Circular dependency detected at ${taskId}! Breaking cycle.`);
+            return;
+        }
+        
+        visiting.add(taskId);
+        const task = blueprint.tasks.find(t => t.id === taskId);
+        
+        if (task && task.dependencies) {
+            for (const dep of task.dependencies) {
+                visit(dep);
+            }
+        }
+        
+        visiting.delete(taskId);
+        visited.add(taskId);
+        if (task) {
+            sortedTasks.push(task);
+        }
+    }
+    
+    blueprint.tasks.forEach(t => visit(t.id));
+
+    // ----------------------------------------------------
+    // Create Runtime Edges (Strictly Linear)
     // ----------------------------------------------------
 
-    for (const edge of blueprint.edges) {
-        // Only add edges that originate from a reachable node
-        // and target a node that actually exists (or END)
-        if (!reachableNodes.has(edge.from) || !reachableNodes.has(edge.to)) {
-            continue;
+    if (sortedTasks.length > 0) {
+        workflow.addEdge(START, sortedTasks[0].id);
+        
+        for (let i = 0; i < sortedTasks.length - 1; i++) {
+            workflow.addEdge(sortedTasks[i].id, sortedTasks[i + 1].id);
         }
-
-        const from =
-            edge.from === "START"
-                ? START
-                : edge.from;
-
-        const to =
-            edge.to === "END"
-                ? END
-                : edge.to;
-
-        // Conditional routing comes later.
-        // For now we only support linear edges.
-
-        workflow.addEdge(
-            from,
-            to
-        );
+        
+        workflow.addEdge(sortedTasks[sortedTasks.length - 1].id, END);
+    } else {
+        workflow.addEdge(START, END);
     }
 
     return workflow.compile();

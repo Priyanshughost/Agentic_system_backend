@@ -1,5 +1,6 @@
-import { testGraph } from "./src/ai/graphs/test.graph.js";
-import { logger } from "./src/utils/logger.js";
+import "dotenv/config";
+import { testGraph } from "../src/ai/graphs/test.graph.js";
+import { logger } from "../src/utils/logger.js";
 
 const initialState = {
   userQuery: "Plan a 7-day trip to Japan from India with a budget of ₹1,50,000 for two people. Research destinations, transportation, accommodation, activities, and create a final itinerary.",

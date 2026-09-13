@@ -53,8 +53,6 @@ const IntentSchema = z.object({
 
     ambiguities: z.array(z.string()).describe("List of missing or unclear details."),
 
-    requiresClarification: z.boolean().describe("True ONLY if the ambiguities are blocking and prevent deterministic workflow compilation."),
-
     complexity: z.object({
 
         reasoning: z.enum([
@@ -89,7 +87,10 @@ const IntentSchema = z.object({
         overall: z.number().min(0).max(1),
         problemDomain: z.number().min(0).max(1),
         features: z.number().min(0).max(1),
-        intentCategory: z.number().min(0).max(1)
+        intentCategory: z.number().min(0).max(1),
+        ambiguities: z.number().min(0).max(1).optional(),
+        inputs: z.number().min(0).max(1).optional(),
+        complexity: z.number().min(0).max(1).optional()
     }).describe(
         "Confidence scores for the extracted intent fields. Provide scores between 0.0 and 1.0 for these specific fields."
     )
@@ -98,7 +99,7 @@ const IntentSchema = z.object({
 const structuredModel =
     gpt20b.withStructuredOutput(IntentSchema);
 
-export const intentNode = async (state) => {
+export const intentNode = async (state, config) => {
 
     const intent = await retryWithRateLimit(() =>
         structuredModel.invoke([
@@ -110,7 +111,8 @@ export const intentNode = async (state) => {
                 role: "user",
                 content: state.userQuery
             }
-        ])
+        ]),
+        config
     );
 
     return {

@@ -22,7 +22,8 @@ export const runtimeNode = async (state, config) => {
     const finalRuntimeState = await runtimeExecutor({
         blueprint,
         specifications,
-        initialState: initialRuntimeState
+        initialState: initialRuntimeState,
+        config
     });
 
     // 4. Return the results to append to the parent globalState

@@ -63,7 +63,8 @@ export const agentSpecificationNode = async (state, config) => {
                         requiredJsonFormat
                     })
                 }
-            ])
+            ]),
+            config
         );
         // console.dir(specification, {depth: null})
         specifications.push({

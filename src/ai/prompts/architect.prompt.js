@@ -150,6 +150,7 @@ TASK DESIGN RULES
 • Never create deployment tasks unless explicitly requested.
 • Never create testing tasks unless explicitly requested.
 • Never create integration tasks unless integration itself requires reasoning.
+• NEVER create tasks to clarify requirements, ask the user for information, or resolve ambiguities. You MUST make reasonable assumptions instead.
 
 --------------------------------------------------
 
@@ -180,7 +181,7 @@ Do NOT invent tasks.
 ROUTING RULES
 
 • Connect every task using valid edges.
-• START must have exactly one outgoing edge.
+• START must have exactly one outgoing edge pointing to the entry task.
 • Every terminal workflow must reach END.
 • Every edge condition must be one of:
 
@@ -188,7 +189,9 @@ ALWAYS
 SUCCESS
 FAILURE
 
-• Parallel branches are allowed only when dependencies permit.
+• STRICT RULE: If Task B lists Task A in its 'dependencies' array, you MUST create an edge from Task A to Task B.
+• STRICT RULE: You MUST NOT schedule tasks in parallel if one depends on the expectedOutput of another.
+• Parallel branches are allowed ONLY when tasks share the exact same dependencies and do not depend on each other.
 • Never create cycles unless explicitly required.
 • Never leave orphan tasks.
 

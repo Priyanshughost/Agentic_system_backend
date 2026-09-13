@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { runtimeNode } from "./src/ai/nodes/runtime.node.js";
+import { runtimeNode } from "../src/ai/nodes/runtime.node.js";
 
 const parentGraphState = {
     userQuery: `Plan a 7 day trip across Japan with a budget of 750000 INR from india and dont ask for any clarifications.`,

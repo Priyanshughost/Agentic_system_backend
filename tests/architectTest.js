@@ -1,5 +1,5 @@
 import "dotenv/config"; // Or your dotenvx setup
-import { architectNode } from "./src/ai/nodes/architect.node.js";
+import { architectNode } from "../src/ai/nodes/architect.node.js";
 
 async function testArchitect() {
     console.log("📐 Initializing Meta-Architect Node...");

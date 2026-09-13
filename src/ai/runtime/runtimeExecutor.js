@@ -4,7 +4,8 @@ import { logger } from "../../utils/logger.js";
 export const runtimeExecutor = async ({
     blueprint,
     specifications,
-    initialState
+    initialState,
+    config
 }) => {
 
     if (!blueprint) {
@@ -32,7 +33,7 @@ export const runtimeExecutor = async ({
     logger.info("========================================");
 
     const finalState =
-        await runtimeGraph.invoke(initialState);
+        await runtimeGraph.invoke(initialState, config);
 
     logger.info("========================================");
     logger.info("✅ Runtime Execution Finished");

@@ -35,40 +35,37 @@ export const sendMessage = async (req, res) => {
 
         // NEW: We are iterating over an async event stream (v2 streamEvents)
         let activeNode = null;
+        let validAgentIds = new Set();
 
         for await (const event of response) {
 
             // Track active graph node to filter out internal orchestration tokens
             if (event.event === "on_chain_start") {
-                if (
-                    event.name &&
-                    !event.name.startsWith("LangGraph") &&
-                    !event.name.startsWith("__") &&
-                    !event.name.includes("ChatGroq") &&
-                    !event.name.includes("Runnable")
-                ) {
+                if (event.name === "intentAnalyzer" || event.name === "metaArchitect" || event.name === "agentSpecificationGenerator" || event.name === "runtimeExecution" || event.name === "responseGenerator") {
                     activeNode = event.name;
-
-                    // Convert camelCase or snake_case to Title Case words
                     const formattedNodeName = activeNode
                         .replace(/([A-Z])/g, ' $1')
                         .replace(/_/g, ' ')
                         .replace(/^./, str => str.toUpperCase())
                         .trim();
-
-                    const coreNodes = ["intentAnalyzer", "metaArchitect", "agentSpecificationGenerator", "runtimeExecution", "responseGenerator"];
-                    
-                    let statusMsg;
-                    if (coreNodes.includes(activeNode)) {
-                        statusMsg = `Processing ${formattedNodeName}...`;
-                    } else {
-                        statusMsg = `Agent Name: "${formattedNodeName}"`;
-                    }
-
                     res.write(
                         `data: ${JSON.stringify({
-                            type: "status", // Flag as status
-                            status: statusMsg,
+                            type: "status",
+                            status: `Processing ${formattedNodeName}...`,
+                        })}\n\n`
+                    );
+                } else if (validAgentIds.has(event.name)) {
+                    // Only switch activeNode if it's a known agent from the specifications
+                    activeNode = event.name;
+                    const formattedNodeName = activeNode
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/_/g, ' ')
+                        .replace(/^./, str => str.toUpperCase())
+                        .trim();
+                    res.write(
+                        `data: ${JSON.stringify({
+                            type: "status",
+                            status: `Agent Name: "${formattedNodeName}"`,
                         })}\n\n`
                     );
                 }
@@ -91,36 +88,16 @@ export const sendMessage = async (req, res) => {
                             })}\n\n`
                         );
                     }
-                } else if (activeNode && !coreNodes.includes(activeNode)) {
-                    // It's a runtime agent, stream its thought/reasoning
-                    const chunk = event.data?.chunk?.content;
-                    if (chunk) {
-                        res.write(
-                            `data: ${JSON.stringify({
-                                type: "agent_thought",
-                                agentId: activeNode,
-                                content: chunk,
-                            })}\n\n`
-                        );
-                    }
                 }
-            }
-
-            // 1.5 Intercept Tool Executions
-            if (event.event === "on_tool_start" && activeNode && !coreNodes.includes(activeNode)) {
-                res.write(
-                    `data: ${JSON.stringify({
-                        type: "agent_action",
-                        agentId: activeNode,
-                        action: `Triggering ${event.name}...`
-                    })}\n\n`
-                );
             }
 
             // 2. NEW: Intercept agent specifications and emit them
             if (event.event === "on_chain_end" && event.name === "agentSpecificationGenerator") {
                 const specifications = event.data?.output?.specifications || event.data?.output?.agentSpecificationGenerator?.specifications;
                 if (specifications && Array.isArray(specifications)) {
+                    specifications.forEach(spec => {
+                        if (spec.taskId) validAgentIds.add(spec.taskId);
+                    });
                     res.write(
                         `data: ${JSON.stringify({
                             type: "agents",

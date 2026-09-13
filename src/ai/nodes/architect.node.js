@@ -109,10 +109,9 @@ export const architectNode = async (state, config) => {
             content: JSON.stringify({
                 intent: state.intent,
                 clarification: state.clarification || null,
-                available_system_tools: TOOL_CATALOG
             }, null, 2)
         }
-    ]));
+    ]), config);
 
     logger.info("🔗 Meta-Architect [Part 2]: Routing edges...");
 
@@ -128,7 +127,7 @@ export const architectNode = async (state, config) => {
                 tasks_generated_in_phase_1: plannerResult.tasks
             }, null, 2)
         }
-    ]));
+    ]), config);
 
     // Merge the two halves back into the single Blueprint structure!
     const blueprint = {

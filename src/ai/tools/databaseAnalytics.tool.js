@@ -7,32 +7,62 @@ import mongoose from "mongoose";
 export const databaseAnalyticsTool = tool(
     async (args) => {
         try {
-            logger.info(`📊 Running Database Analytics: ${args.query_type}`);
+            logger.info(`📊 Running Advanced Database Query on collection: ${args.collection}`);
             
             // Ensure DB is connected
             if (mongoose.connection.readyState !== 1) {
                 return "Database is not currently connected.";
             }
 
-            if (args.query_type === "total_conversations") {
-                const count = await Conversation.countDocuments();
-                return `There are currently ${count} conversations stored in the database.`;
+            const db = mongoose.connection.db;
+            const collection = db.collection(args.collection);
+            
+            let queryObj = {};
+            if (args.query) {
+                try {
+                    queryObj = JSON.parse(args.query);
+                } catch (e) {
+                    return `Error parsing query JSON: ${e.message}. Ensure it is a valid JSON string.`;
+                }
+            }
+
+            if (args.operation === "count") {
+                const count = await collection.countDocuments(queryObj);
+                return `Total count in '${args.collection}' matching query: ${count}`;
             } 
-            else if (args.query_type === "recent_conversations") {
-                const limit = args.limit || 5;
-                const recent = await Conversation.find()
-                    .sort({ updatedAt: -1 })
-                    .limit(limit)
-                    .select('title createdAt')
-                    .lean();
+            
+            if (args.operation === "aggregate") {
+                if (!Array.isArray(queryObj)) {
+                    return `Error: For aggregate operations, 'query' must be a valid JSON array string representing the pipeline.`;
+                }
+                const results = await collection.aggregate(queryObj).toArray();
+                return JSON.stringify(results, null, 2);
+            }
+
+            if (args.operation === "find") {
+                let cursor = collection.find(queryObj);
                 
-                if (recent.length === 0) return "No recent conversations found.";
+                if (args.sort) {
+                    try {
+                        const sortObj = JSON.parse(args.sort);
+                        cursor = cursor.sort(sortObj);
+                    } catch (e) {
+                        return `Error parsing sort JSON: ${e.message}`;
+                    }
+                }
                 
-                const formatted = recent.map((c, i) => `${i+1}. "${c.title}" (Created: ${new Date(c.createdAt).toLocaleDateString()})`).join('\n');
-                return `Here are the ${recent.length} most recent conversations:\n${formatted}`;
+                const limit = args.limit || 10;
+                // Hard cap limit to prevent massive payload issues
+                const safeLimit = Math.min(limit, 50); 
+                
+                const results = await cursor.limit(safeLimit).toArray();
+                
+                if (results.length === 0) return `No documents found in '${args.collection}' matching the query.`;
+                
+                return JSON.stringify(results, null, 2);
             }
             
-            return `Unknown query_type: ${args.query_type}. Supported types are "total_conversations" and "recent_conversations".`;
+            return `Unknown operation: ${args.operation}. Supported operations are "find", "count", and "aggregate".`;
 
         } catch (error) {
             logger.error(`❌ Database Analytics Error: ${error.message}`);
@@ -41,10 +71,13 @@ export const databaseAnalyticsTool = tool(
     },
     {
         name: "database_analytics_tool",
-        description: "Executes read-only analytical queries against the local application MongoDB database to get statistics about conversations.",
+        description: "Advanced tool for executing read-only MongoDB queries directly against the application's database (collections: 'conversations', 'messages', 'users', etc.). Use this to inspect application data.",
         schema: z.object({
-            query_type: z.enum(["total_conversations", "recent_conversations"]).describe("The type of statistic to retrieve."),
-            limit: z.number().optional().describe("Optional limit for 'recent_conversations' (default 5).")
+            collection: z.string().describe("The exact name of the MongoDB collection to query (e.g., 'conversations', 'messages', 'users')."),
+            operation: z.enum(["find", "count", "aggregate"]).describe("The read operation to perform."),
+            query: z.string().optional().describe("A valid JSON string representing the query filter (for 'find'/'count') or the pipeline array (for 'aggregate'). Example: '{\"role\":\"user\"}' or '[{\"$group\": {\"_id\": \"$role\", \"count\": {\"$sum\": 1}}}]'"),
+            sort: z.string().optional().describe("A valid JSON string for sorting results. Example: '{\"createdAt\": -1}'"),
+            limit: z.number().int().positive().optional().describe("Max number of documents to return (max 50, default 10).")
         })
     }
 );

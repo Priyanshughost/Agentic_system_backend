@@ -2,7 +2,7 @@ import { qwen27b } from "../models/qwen27b.js";
 import { logger } from "../../utils/logger.js";
 import { retryWithRateLimit } from "../../utils/retryWithRateLimit.js";
 
-export const responseGeneratorNode = async (state) => {
+export const responseGeneratorNode = async (state, config) => {
     logger.info("📝 Response Generator: Converting final output to Markdown...");
 
     const prompt = `You are an expert AI assistant designed to format system outputs into beautiful, human-readable Markdown.
@@ -28,7 +28,8 @@ ${JSON.stringify(state.finalOutput, null, 2)}
                 role: "user",
                 content: state.userQuery
             }
-        ])
+        ]),
+        config
     );
 
     return {

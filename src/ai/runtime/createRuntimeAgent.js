@@ -17,7 +17,7 @@ export const createRuntimeAgent = ({
     tools
 }) => {
 
-    return async (state) => {
+    return async (state, config) => {
         logger.info("====================================");
         logger.info(`🤖 ${task.name}`);
         logger.info("====================================");
@@ -103,7 +103,8 @@ export const createRuntimeAgent = ({
             try {
 
                 response = await retryWithRateLimit(() =>
-                    llm.invoke(conversation)
+                    llm.invoke(conversation, config),
+                    config
                 );
 
             }
